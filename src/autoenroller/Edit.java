@@ -3,6 +3,7 @@ package autoenroller;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
+import spireautomator.UMass;
 
 /**
  * The Edit {@link Action} is used to change the discussion section
@@ -29,11 +30,11 @@ public class Edit extends Action {
     }
 
     @Override
-    public boolean perform(Spire spire) {
+    public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
-        WebDriver driver = spire.getDriver();
+        WebDriver driver = spireEnrollment.getDriver();
         // Go to the "edit" SPIRE tab.
-        UMass.findElementTab(spire.getDriver(), "edit").click();
+        UMass.findElementTab(spireEnrollment.getDriver(), "edit").click();
         // Wait, then select the Lecture in the dropdown menu by its class ID.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLED_DROPDOWN_SELECTOR))).selectByValue(lectureToEdit.getClassId());
         // Click the "Proceed To Step 2 Of 3" button.

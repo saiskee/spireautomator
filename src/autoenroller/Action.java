@@ -40,11 +40,11 @@ public abstract class Action {
      * overrides this abstract function to perform its
      * specific task. This function must only be called
      * of all of the Conditions for this Action are met.
-     * Condition check occurs in the Spire controller.
-     * @param spire     The Spire controller with cart, schedule, and driver.
+     * Condition check occurs in the SpireEnrollment controller.
+     * @param spireEnrollment     The SpireEnrollment controller with cart, schedule, and driver.
      * @return          True if successfully performed, false if not.
      */
-    public abstract boolean perform(Spire spire);
+    public abstract boolean perform(SpireEnrollment spireEnrollment);
 
     // Recursively satisfies a list of satisfiable actions.
     // This should execute on all of this Action's satisfiable Actions

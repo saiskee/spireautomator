@@ -3,6 +3,7 @@ package autoenroller;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
+import spireautomator.UMass;
 
 /**
  * The Swap {@link Action} enrolls the user in one {@link Lecture}
@@ -44,11 +45,11 @@ public class Swap extends Action {
     }
 
     @Override
-    public boolean perform(Spire spire) {
+    public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
-        WebDriver driver = spire.getDriver();
+        WebDriver driver = spireEnrollment.getDriver();
         // Go to the "swap" SPIRE tab.
-        UMass.findElementTab(spire.getDriver(), "swap").click();
+        UMass.findElementTab(spireEnrollment.getDriver(), "swap").click();
         // Select the Lecture to drop.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.SWAP_SCHEDULE_MENU_SELECTOR)))
                 .selectByValue(lectureToDrop.getClassId());

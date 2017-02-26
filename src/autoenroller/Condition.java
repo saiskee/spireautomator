@@ -7,7 +7,7 @@ package autoenroller;
  * override toString() to describe the Condition's
  * terms in a human-readable format.
  * Examples of anonymous Conditions can be found in
- * {@link SpireAutomator}.
+ * {@link SpireEnroller}.
  */
 public interface Condition {
     boolean isMet();

@@ -1,4 +1,4 @@
-package autoenroller;
+package spireautomator;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -36,6 +36,7 @@ public class UMass {
 
     // Student Center
     public static final String ENROLLMENT_LINK_SELECTOR = "#DERIVED_SSS_SCR_SSS_LINK_ANCHOR1";
+    public static final String HOUSING_LINK_SELECTOR = "#UM_H_DERIV_SSS_UMH_SS_RMSEL_LNK";
 
     // Shopping Cart
     public static final String CART_SCHEDULE_SELECTOR = "#STDNT_ENRL_SSVW\\24 scroll\\24 0";
@@ -65,6 +66,10 @@ public class UMass {
     public static final String ENROLLED_DROPDOWN_SELECTOR = "#DERIVED_REGFRM1_DESCR50\\24 225\\24";
     public static final String EDIT_CONFIRM_STEP_1_SELECTOR = "#DERIVED_REGFRM1_LINK_UPDATE_ENRL";
 
+    // Room Selection Home
+    public static final String HOUSING_APPTS_SELECTOR = "#HS_APPOINTMENTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
+    public static final String SEARCH_FOR_ROOM_SELECTOR = "#UM_H_DRV_RS_HOM_UMH_RMSRCH_LNK";
+
     // Returns elements of the shopping cart table on the shopping cart page.
     public static WebElement findElementShoppingCart(WebDriver driver, int row, int col) {
         return waitForElement(driver, By.cssSelector("#trSSR_REGFORM_VW\\24 0_row"+row+" > td:nth-child("+col+")"));
@@ -86,6 +91,10 @@ public class UMass {
 
     public static WebElement findElementAddTable(WebDriver driver, int row, int col) {
         return waitForElement(driver, By.cssSelector("#trSSR_CLS_TBL_R1\\24 0_row"+row+" > td:nth-child("+col+")"));
+    }
+
+    public static WebElement findElementHsgApptTable(WebDriver driver, int row, int col) {
+        return waitForElement(driver, By.cssSelector("#trHS_APPOINTMENTS\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
     public static WebElement findElementTab(WebDriver driver, String tabName) {
@@ -134,5 +143,13 @@ public class UMass {
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public static int tryToInt(String string) {
+        int result = Integer.MIN_VALUE;
+        try {
+            result = Integer.valueOf(string);
+        } catch(NumberFormatException e) {}
+        return result;
     }
 }

@@ -3,6 +3,7 @@ package autoenroller;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import spireautomator.UMass;
 
 import java.util.List;
 
@@ -44,11 +45,11 @@ public class Add extends Action {
     }
 
     @Override
-    public boolean perform(Spire spire) {
+    public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
-        WebDriver driver = spire.getDriver();
+        WebDriver driver = spireEnrollment.getDriver();
         // If the Lecture is not already in the shopping cart.
-        if(spire.getShoppingCart().get(lectureToAdd.getClassId()) == null) {
+        if(spireEnrollment.getShoppingCart().get(lectureToAdd.getClassId()) == null) {
             // Type in class ID of Lecture into add by ID field.
             driver.findElement(By.cssSelector(UMass.ADD_CART_FIELD_SELECTOR)).sendKeys(lectureToAdd.getClassId());
             // Click the enter button next to the add by ID field.

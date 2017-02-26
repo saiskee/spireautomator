@@ -3,6 +3,7 @@ package autoenroller;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import spireautomator.UMass;
 
 import java.util.List;
 
@@ -30,9 +31,9 @@ public class Drop extends Action {
     }
 
     @Override
-    public boolean perform(Spire spire) {
+    public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
-        WebDriver driver = spire.getDriver();
+        WebDriver driver = spireEnrollment.getDriver();
         // Go to the "drop" SPIRE tab.
         UMass.findElementTab(driver, "drop").click();
         // Get a list of all of the Lectures that can be dropped.

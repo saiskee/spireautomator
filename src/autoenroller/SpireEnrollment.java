@@ -3,16 +3,12 @@ package autoenroller;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
+import spireautomator.UMass;
 
-import java.io.Console;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 /**
- * The main controller for SPIRE activity throughout runtime.
+ * This class automates the enrollment process on SPIRE.
  * Though the fischerautoenroll package assumes future support
  * for other schools, it cannot be assumed that their class
  * structure is the same as UMass' structure. Other schools
@@ -24,29 +20,25 @@ import java.util.*;
  * that may come up when combining hardcoded and parsed
  * Lectures. Keys are class IDs and return Lectures.
  */
-public class Spire {
+public class SpireEnrollment {
     private WebDriver driver;
-    private File propertiesFile;
-    private Properties properties;
     private Map<String, Lecture> currentSchedule;
     private Map<String, Lecture> shoppingCart;
     private ArrayList<Action> actions;
 
-    public Spire(WebDriver driver) {
+    public SpireEnrollment(WebDriver driver) {
         this.driver = driver;
-        this.propertiesFile = null;
-        this.properties = new Properties();
         this.currentSchedule = new HashMap<>();
         this.shoppingCart = new HashMap<>();
         this.actions = new ArrayList<>();
     }
 
-    public Spire(WebDriver driver, ArrayList<Action> actions) {
+    public SpireEnrollment(WebDriver driver, ArrayList<Action> actions) {
         this(driver);
         this.actions = actions;
     }
 
-    public Spire(WebDriver driver, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
+    public SpireEnrollment(WebDriver driver, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
         this(driver);
         this.currentSchedule = currentSchedule;
         this.shoppingCart = shoppingCart;
@@ -54,21 +46,12 @@ public class Spire {
     }
 
     /**
-     * This function runs the entire Spire automation
-     * from login to conclusion. It is called by the
-     * Spire controller after instantiation and adding
-     * the schedule, shopping cart, and actions.
+     * This function runs the SpireEnrollment automation from the point of
+     * entering the enrollment portal to conclusion. It is called by the
+     * {@link spireautomator.SpireAutomator} controller after instantiation
+     * and adding the schedule, shopping cart, and actions.
      */
     public void run() {
-        spireLogon(UMass.LOGIN_URL);
-
-        // SPIRE is normally shown as a webpage within a webpage.
-        // The subwebpage's code is hard to access while it is nested.
-        // This line explicitly waits until the internal frame is present
-        // and then loads it into the driver as the main webpage.
-        driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
-        // Wait in case there is an error popup (seen on Firefox, not Chrome).
-        UMass.sleep(500);
         // Click on the link that goes to enrollment.
         UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLMENT_LINK_SELECTOR)).click();
 
@@ -130,43 +113,6 @@ public class Spire {
         printCurrentSchedule();
     }
 
-    private String getUsername() {
-        if(properties.getProperty("username") != null) {
-            return properties.getProperty("username");
-        } else {
-            System.out.println("Username:");
-            String username = new Scanner(System.in).nextLine();
-            System.out.println("Save username? (y/n)");
-            if(new Scanner(System.in).nextLine().equals("y")) {
-                properties.setProperty("username", username);
-                storeProperties(properties, propertiesFile);
-            }
-            return username;
-        }
-
-    }
-
-    private String getPassword() {
-        if(properties.getProperty("password") != null) {
-            return properties.getProperty("password");
-        } else {
-            System.out.println("Password:");
-            String password;
-            Console console = System.console();
-            if(console != null) {
-                password = new String(console.readPassword());
-            } else {
-                password = new Scanner(System.in).nextLine();
-            }
-            System.out.println("Save password? (y/n)");
-            if(new Scanner(System.in).nextLine().equals("y")) {
-                properties.setProperty("password", password);
-                storeProperties(properties, propertiesFile);
-            }
-            return password;
-        }
-    }
-
     public void printCurrentSchedule() {
         System.out.println("Current schedule:");
         for(Class c : currentSchedule.values()) {
@@ -189,19 +135,6 @@ public class Spire {
             System.out.println(a.toString());
         }
         System.out.println();
-    }
-
-    private void spireLogon(String url) {
-        driver.get(url);
-        do {
-            // Explicitly waits for the Username field to load and types username.
-            UMass.waitForElement(driver, By.id(UMass.USERNAME_ID)).sendKeys(getUsername());
-            // Presence of Username means Password and Go button are loaded too.
-            driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(getPassword());
-            driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();
-            UMass.sleep(1000);
-        // The page will be "SPIRE Logon" as long as the user is not logged in.
-        } while(driver.getTitle().equals("SPIRE Logon"));
     }
 
     private Map<String, Lecture> parseCurrentSchedule() {
@@ -373,32 +306,6 @@ public class Spire {
 
     public WebDriver getDriver() {
         return driver;
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties, File propertiesFile) {
-        this.properties = properties;
-        this.propertiesFile = propertiesFile;
-    }
-
-    private void storeProperties(Properties properties, File propertiesFile) {
-        if(!propertiesFile.exists()) {
-            try {
-                propertiesFile.createNewFile();
-                Path propertiesNioPath = propertiesFile.toPath();
-                Files.setAttribute(propertiesNioPath, "dos:hidden", true);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            properties.store(new FileOutputStream(propertiesFile), "");
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public Map<String, Lecture> getCurrentSchedule() {
