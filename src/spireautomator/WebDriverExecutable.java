@@ -1,4 +1,4 @@
-package autoenroller;
+package spireautomator;
 
 /**
  * Executable functionality tested on:
@@ -15,6 +15,7 @@ package autoenroller;
  * Known Selenium functionality problems on:
  * Firefox on Linux
  */
+//TODO: Make WebDriverExecutable into enum?
 public class WebDriverExecutable {
     public static final String CHROME_WIN32 = "chromedriver-win32.exe";
     public static final String CHROME_MAC64 = "chromedriver-mac64";

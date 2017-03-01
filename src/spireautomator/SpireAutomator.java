@@ -1,6 +1,8 @@
 package spireautomator;
 
 import autoenroller.*;
+import autohouser.Building;
+import autohouser.ResidentialArea;
 import autohouser.SpireHousing;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -69,8 +71,10 @@ public class SpireAutomator {
                                     setExampleEnrollerConfig(driver, currentSchedule, shoppingCart, actions);
                                     SpireEnrollment spireEnrollment = new SpireEnrollment(driver, currentSchedule, shoppingCart, actions);
                                     spireEnrollment.run();
-                    break;
-                case "houser":      SpireHousing spireHousing = new SpireHousing(driver);
+                                    break;
+                case "houser":      Map<String, ResidentialArea> residentialAreas = new HashMap<>();
+                                    setResidentialAreaConfig(residentialAreas);
+                                    SpireHousing spireHousing = new SpireHousing(driver, residentialAreas);
                                     spireHousing.run();
                                     break;
                 default:            break;
@@ -313,5 +317,85 @@ public class SpireAutomator {
         actions.add(edit_compsci240_01_compsci240_01ab);
         // End actions
     }
-}
 
+    /**
+     * Constructs the {@link ResidentialArea}s
+     * and {@link Building}s on the UMass campus.
+     * @param residentialAreas A Map of all of the residential areas on campus, containing all of the Buildings.
+     */
+    private static void setResidentialAreaConfig(Map<String, ResidentialArea> residentialAreas){
+        ResidentialArea orchardHill = new ResidentialArea("Orchard Hill");
+        ResidentialArea central = new ResidentialArea("Central");
+        ResidentialArea northeast = new ResidentialArea("Northeast");
+        ResidentialArea southwest = new ResidentialArea("Southwest");
+        ResidentialArea honors = new ResidentialArea("Honors");
+        ResidentialArea north = new ResidentialArea("North");
+        ResidentialArea sylvan = new ResidentialArea("Sylvan");
+
+        orchardHill.put(new Building("Dickinson"));
+        orchardHill.put(new Building("Webster"));
+        orchardHill.put(new Building("Grayson"));
+        orchardHill.put(new Building("Field"));
+
+        central.put(new Building("Van Meter"));
+        central.put(new Building("Gorman"));
+        central.put(new Building("Wheeler"));
+        central.put(new Building("Butterfield"));
+        central.put(new Building("Greenough"));
+        central.put(new Building("Chadbourne"));
+        central.put(new Building("Baker"));
+        central.put(new Building("Brooks"));
+        central.put(new Building("Brett"));
+
+        northeast.put(new Building("Hamlin"));
+        northeast.put(new Building("Leach"));
+        northeast.put(new Building("Dwight"));
+        northeast.put(new Building("Knowlton"));
+        northeast.put(new Building("Crabtree"));
+        northeast.put(new Building("Mary Lyon"));
+        northeast.put(new Building("Johnson"));
+        northeast.put(new Building("Lewis"));
+        northeast.put(new Building("Thatcher"));
+
+        north.put(new Building("North A"));
+        north.put(new Building("North B"));
+        north.put(new Building("North C"));
+        north.put(new Building("North D"));
+
+        sylvan.put(new Building("Brown"));
+        sylvan.put(new Building("McNamara"));
+        sylvan.put(new Building("Cashin"));
+
+        honors.put(new Building("Oak"));
+        honors.put(new Building("Sycamore"));
+        honors.put(new Building("Birch"));
+        honors.put(new Building("Elm"));
+        honors.put(new Building("Maple"));
+        honors.put(new Building("Linden"));
+
+        southwest.put(new Building("Melville"));
+        southwest.put(new Building("Thoreau"));
+        southwest.put(new Building("Pierpont"));
+        southwest.put(new Building("Moore"));
+        southwest.put(new Building("James"));
+        southwest.put(new Building("Emerson"));
+        southwest.put(new Building("Kennedy"));
+        southwest.put(new Building("Cance"));
+        southwest.put(new Building("Coolidge"));
+        southwest.put(new Building("Crampton"));
+        southwest.put(new Building("John Adams"));
+        southwest.put(new Building("John Quincy Adams"));
+        southwest.put(new Building("MacKimmie"));
+        southwest.put(new Building("Patterson"));
+        southwest.put(new Building("Prince"));
+        southwest.put(new Building("Washington"));
+
+        residentialAreas.put(orchardHill.getId(), orchardHill);
+        residentialAreas.put(central.getId(), central);
+        residentialAreas.put(northeast.getId(), northeast);
+        residentialAreas.put(southwest.getId(), southwest);
+        residentialAreas.put(honors.getId(), honors);
+        residentialAreas.put(north.getId(), north);
+        residentialAreas.put(sylvan.getId(), sylvan);
+    }
+}

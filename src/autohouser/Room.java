@@ -1,50 +1,65 @@
 package autohouser;
 
+import spireautomator.UMass;
+
+import java.util.Map;
+
 /**
- * An implementation of an open room shown as
- * a search result in the SPIRE housing portal.
+ * Rooms have a pointer "upwards" to its Building
+ * which points "upwards" to its Residential Area.
+ * This is set by a Building when the Room is mapped to one.
+ * Rooms also have enumerated attributes for the design and type.
+ * A Room ID follows the format
+ * "BuildingID-RoomNumberNormalized" which derives to
+ * "ResidentialAreaNameNormalized-BuildingNameNormalized-RoomNumberNormalized".
  */
 public class Room {
-    private String building;
+    private Building building;
     private String number;
-    private String design;
-    private String type;
+    private DesignEnum design;
+    private TypeEnum type;
 
-    public Room(String building, String number, String design, String type) {
+    public Room() {
+        this.building = null;
+        this.number = null;
+        this.design = null;
+        this.type = null;
+    }
+
+    public Room(Building building, String number, DesignEnum design, TypeEnum type) {
+        this();
         this.building = building;
         this.number = number;
         this.design = design;
         this.type = type;
     }
 
-    /**
-     * Returns the building that this room is in.
-     * Building name is in lower case.
-     * @return  Lower-case String of the room's building.
-     */
-    public String getBuilding() {
-        return building;
+    public Room(Map<String, ResidentialArea> residentialAreas, String buildingInput, String numberInput, String designInput, String typeInput) {
+        this();
+        Building building = null;
+//        this.building = new Building(building);
+//        this.number = new Number(number);
+//        this.design = new Design(design);
+//        this.type = new Type(type);
+    }
+
+    public void setBuilding(Building building) {
+        this.building = building;
+    }
+
+    public String getId() {
+        return Room.getId(building.getArea().getName(), building.getName(), this.getNumber());
+    }
+
+    public static String getId(String area, String building, String number) {
+        return Building.getId(area, building)+UMass.SEPARATOR+number.trim().toLowerCase().replace(" ", "").replace("-", "").replace("_", "");
     }
 
     public String getNumber() {
         return number;
     }
 
-    /**
-     * Returns the layout of the room.
-     * Example layouts include "corner", "z room", "standard"
-     * @return  Lower-case String of the room's design/layout.
-     */
-    public String getDesign() {
-        return design;
-    }
-
-    /**
-     * Returns the type of the room.
-     * Example types include "double", "triple", "single"
-     * @return  Lower-case String of the amount of people the room houses.
-     */
-    public String getType() {
-        return type;
+    public String toString() {
+        return building.toString()+UMass.SEPARATOR+number;
     }
 }

@@ -15,6 +15,7 @@ public class UMass {
     public static final int TRUE = 1;
     public static final int FALSE = 0;
     public static final int NOT_FOUND = -1;
+    public static final String SEPARATOR = "-";
 
     public static final String CHECKBOX_CLASS = "PSCHECKBOX";
     public static final String RADIO_BUTTON_CLASS = "PSRADIOBUTTON";
@@ -70,6 +71,12 @@ public class UMass {
     public static final String HOUSING_APPTS_SELECTOR = "#HS_APPOINTMENTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
     public static final String SEARCH_FOR_ROOM_SELECTOR = "#UM_H_DRV_RS_HOM_UMH_RMSRCH_LNK";
 
+    // Room Search
+
+    //TODO: Find HTML/CSS selectors for rooms results table.
+    // Room Search Results
+    public static final String ROOMS_RESULTS_SELECTOR = null;
+
     // Returns elements of the shopping cart table on the shopping cart page.
     public static WebElement findElementShoppingCart(WebDriver driver, int row, int col) {
         return waitForElement(driver, By.cssSelector("#trSSR_REGFORM_VW\\24 0_row"+row+" > td:nth-child("+col+")"));
@@ -95,6 +102,11 @@ public class UMass {
 
     public static WebElement findElementHsgApptTable(WebDriver driver, int row, int col) {
         return waitForElement(driver, By.cssSelector("#trHS_APPOINTMENTS\\24 0_row"+row+" > td:nth-child("+col+")"));
+    }
+
+    //TODO: Find HTML/CSS selector for rooms results table.
+    public static WebElement findElementRoomsResults(WebDriver driver, int row, int col) {
+        return waitForElement(driver, By.cssSelector(null));
     }
 
     public static WebElement findElementTab(WebDriver driver, String tabName) {
