@@ -6,11 +6,17 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.text.SimpleDateFormat;
+
 /**
  * The constants that identify {@link org.openqa.selenium.WebElement}s
  * throughout SPIRE.
  */
 public class UMass {
+    public static SimpleDateFormat dateTimeFormat = new SimpleDateFormat("MM/dd/YYYY h:mmaa");
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/YYYY");
+    public static SimpleDateFormat timeFormat = new SimpleDateFormat("h:mmaa");
+
     // General
     public static final int TRUE = 1;
     public static final int FALSE = 0;
@@ -71,7 +77,16 @@ public class UMass {
     public static final String HOUSING_APPTS_SELECTOR = "#HS_APPOINTMENTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
     public static final String SEARCH_FOR_ROOM_SELECTOR = "#UM_H_DRV_RS_HOM_UMH_RMSRCH_LNK";
 
-    // Room Search
+    // Room Search Criteria
+    public static final String STEP1_TERM_SELECTOR = "#UM_H_DRV_RMSRCH_STRM";
+    public static final String STEP1_APPT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_APPT_TYPE";
+    public static final String STEP2_BUILDING_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE";
+    public static final String STEP2_BUILDING_DROP_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG";
+    public static final String STEP2_CLUSTER_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 11\\24";
+    public static final String STEP2_CLUSTER_DROP_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG_SGRP";
+    public static final String STEP2_AREA_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 10\\24";
+    public static final String STEP2_AREA_DROP_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG_GRP";
+    public static final String STEP2_ALL_HALLS_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 68\\24";
 
     //TODO: Find HTML/CSS selectors for rooms results table.
     // Room Search Results

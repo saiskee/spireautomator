@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.apache.commons.lang3.SystemUtils.IS_OS_LINUX;
@@ -26,7 +27,7 @@ import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
  */
 public class SpireAutomator {
     public static void main(String[] args) {
-        File propertiesFile = new File(".spire.properties");
+        File propertiesFile = new File(".spire.properties").getAbsoluteFile();
         Properties properties = new Properties();
         WebDriver driver;
         if(propertiesFile.exists()) {
@@ -43,8 +44,7 @@ public class SpireAutomator {
             automator = args[0];
             System.out.println("Save automator? (y/n)");
             if(new Scanner(System.in).nextLine().equals("y")) {
-                properties.setProperty("automator", automator);
-                storeProperties(properties, propertiesFile);
+                setAndStoreProperties("automator", automator, properties, propertiesFile);
             }
         }else if(properties.get("automator") != null) {
             automator = properties.get("automator").toString();
@@ -147,8 +147,7 @@ public class SpireAutomator {
             } while (browserNum == -1);
             System.out.println("Save browser choice? (y/n)");
             if (new Scanner(System.in).nextLine().equals("y")) {
-                properties.setProperty("browser", "" + browserNum);
-                storeProperties(properties, propertiesFile);
+                setAndStoreProperties("browser", ""+browserNum, properties, propertiesFile);
             }
         }
         if (browserNum == 1) {
@@ -173,18 +172,23 @@ public class SpireAutomator {
         return driver;
     }
 
+    public static void setAndStoreProperties(String key, String value, Properties properties, File propertiesFile) {
+        properties.setProperty(key, value);
+        storeProperties(properties, propertiesFile);
+    }
+
     public static void storeProperties(Properties properties, File propertiesFile) {
         if(!propertiesFile.exists()) {
             try {
                 if(propertiesFile.createNewFile()) {
-                    Files.setAttribute(propertiesFile.toPath(), "dos:hidden", true);
+                    //TODO: "FileNotFoundException (access is denied)" when writing to hidden file, works on normal file.
+                    // Files.setAttribute(propertiesFile.toPath(), "dos:hidden", true);
                 }
             } catch(Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-            //TODO: This sometimes throws "java.io.FileNotFoundException: .spire.properties (Access is denied)" possibly due to hidden attribute on Windows?
             properties.store(new FileOutputStream(propertiesFile), "");
         } catch(Exception e) {
             e.printStackTrace();

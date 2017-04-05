@@ -1,5 +1,6 @@
 package autohouser;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,8 +25,8 @@ public class ResidentialArea {
     }
 
     public void put(Building building) {
-        this.buildings.put(building.getId(), building);
         building.setArea(this);
+        this.buildings.put(building.getId(), building);
     }
 
     /**
@@ -57,6 +58,10 @@ public class ResidentialArea {
 
     public String getName() {
         return name;
+    }
+
+    public Collection<Building> getAllBuildings() {
+        return buildings.values();
     }
 
     public String toString() {
