@@ -34,8 +34,15 @@ public class Drop extends Action {
     public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
         WebDriver driver = spireEnrollment.getDriver();
-        // Go to the "drop" SPIRE tab.
-        UMass.findElementTab(driver, "drop").click();
+        // Check if Drop is the current tab.
+        if(!UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
+                .getText().contains("Select classes to drop")) {
+            UMass.findElementTab(driver, "drop").click();
+        }
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(spireEnrollment)) {
+            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+        }
         // Get a list of all of the Lectures that can be dropped.
         List<WebElement> dropTable = UMass.waitForElement(driver, By.cssSelector(UMass.DROP_TABLE_SELECTOR)).findElements(By.tagName("tr"));
         for(int row = 1; row < dropTable.size(); row++) {

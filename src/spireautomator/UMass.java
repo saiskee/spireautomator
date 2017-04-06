@@ -1,12 +1,15 @@
 package spireautomator;
 
+import autoenroller.SpireEnrollment;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * The constants that identify {@link org.openqa.selenium.WebElement}s
@@ -34,6 +37,7 @@ public class UMass {
     public static final String RESULT_ICON_SELECTOR = "#trSSR_SS_ERD_ER\\24 0_row1 > td:nth-child(3)";
     public static final String SUCCESS_ICON_HTML = "alt=\"Success\"";
     public static final String OPEN_ICON_HTML = "alt=\"Open\"";
+    public static final String SECTION_TITLE_SELECTOR = "#DERIVED_REGFRM1_TITLE1";
 
     // SPIRE Logon
     public static final String LOGIN_URL = "https://spire.umass.edu/";
@@ -44,6 +48,10 @@ public class UMass {
     // Student Center
     public static final String ENROLLMENT_LINK_SELECTOR = "#DERIVED_SSS_SCR_SSS_LINK_ANCHOR1";
     public static final String HOUSING_LINK_SELECTOR = "#UM_H_DERIV_SSS_UMH_SS_RMSEL_LNK";
+
+    // Select Term
+    public static final String TERMS_TABLE_SELECTOR = "#SSR_DUMMY_RECV1\\24 scroll\\24 0";
+    public static final String TERMS_CONTINUE_SELECTOR = "#DERIVED_SSS_SCT_SSR_PB_GO";
 
     // Shopping Cart
     public static final String CART_SCHEDULE_SELECTOR = "#STDNT_ENRL_SSVW\\24 scroll\\24 0";
@@ -92,6 +100,11 @@ public class UMass {
     // Room Search Results
     public static final String ROOMS_RESULTS_SELECTOR = null;
 
+    // Returns elements of the select term table on the select term page.
+    public static WebElement findElementTermTable(WebDriver driver, int row, int col) {
+        return waitForElement(driver, By.cssSelector("#trSSR_DUMMY_RECV1\\24 0_row"+row+" > td:nth-child("+col+")"));
+    }
+
     // Returns elements of the shopping cart table on the shopping cart page.
     public static WebElement findElementShoppingCart(WebDriver driver, int row, int col) {
         return waitForElement(driver, By.cssSelector("#trSSR_REGFORM_VW\\24 0_row"+row+" > td:nth-child("+col+")"));
@@ -137,6 +150,32 @@ public class UMass {
         return tabFound;
     }
 
+    public static boolean checkSelectTerm(SpireEnrollment spireEnrollment) {
+        if(UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
+                .getText().contains("Select Term")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean selectTerm(WebDriver driver, String term) {
+        List<WebElement> termTable = UMass.waitForElement(driver, By.cssSelector(UMass.TERMS_TABLE_SELECTOR)).findElements(By.tagName("tr"));
+        for(int row = 1; row < termTable.size(); row++) {
+            // If this cell contains the full name of the desired term.
+            if(findElementTermTable(driver, row, 2).getText().contains(term)) {
+                // Click the table cell with this term's radio button.
+                findElementTermTable(driver, row, 1).click();
+                // Click the Continue button to proceed.
+                UMass.waitForElement(driver, By.cssSelector(UMass.TERMS_CONTINUE_SELECTOR)).click();
+                // Return true and exit loop once a term has been selected.
+                return true;
+            }
+        }
+        // Return false when the desired term was not found.
+        return false;
+    }
+
     /**
      * Wait for a {@link WebElement} to load.
      * Refreshes every 200 milliseconds and times out after 10 seconds.
@@ -162,6 +201,17 @@ public class UMass {
      */
     public static WebElement waitForElement(WebDriver driver, int timeoutSeconds, By by) {
         return (new WebDriverWait(driver, timeoutSeconds, 200)).until(ExpectedConditions.presenceOfElementLocated(by));
+    }
+
+    public static boolean isElementFound(WebDriver driver, int timeoutSeconds, By by) {
+        try {
+            if(waitForElement(driver, timeoutSeconds, by) != null) {
+                return true;
+            }
+        } catch(TimeoutException timeout) {
+        } finally {
+            return false;
+        }
     }
 
     public static void sleep(int millis) {

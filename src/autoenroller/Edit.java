@@ -33,8 +33,15 @@ public class Edit extends Action {
     public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
         WebDriver driver = spireEnrollment.getDriver();
-        // Go to the "edit" SPIRE tab.
-        UMass.findElementTab(spireEnrollment.getDriver(), "edit").click();
+        // Check if Edit is the current tab.
+        if(!UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
+                .getText().contains("Select a class to edit")) {
+            UMass.findElementTab(driver, "edit").click();
+        }
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(spireEnrollment)) {
+            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+        }
         // Wait, then select the Lecture in the dropdown menu by its class ID.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLED_DROPDOWN_SELECTOR))).selectByValue(lectureToEdit.getClassId());
         // Click the "Proceed To Step 2 Of 3" button.

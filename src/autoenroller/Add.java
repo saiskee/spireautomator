@@ -48,6 +48,15 @@ public class Add extends Action {
     public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
         WebDriver driver = spireEnrollment.getDriver();
+        // Check if Add is the current tab.
+        if(!UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
+                .getText().contains("Add Classes to Shopping Cart")) {
+            UMass.findElementTab(driver, "add").click();
+        }
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(spireEnrollment)) {
+            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+        }
         // If the Lecture is not already in the shopping cart.
         if(spireEnrollment.getShoppingCart().get(lectureToAdd.getClassId()) == null) {
             // Type in class ID of Lecture into add by ID field.

@@ -51,6 +51,11 @@ public class SpireAutomator {
         } else {
             System.out.println("This program requires one parameter. The options are:\nenroller\nhouser");
         }
+        //TODO: Find a better way to store automated-specific persistent data. Individual .properties files?
+        String selectedTerm = "";
+        if(args.length > 1) {
+            selectedTerm = args[1];
+        }
         if(automator != null) {
             driver = getWebDriver(properties, propertiesFile);
             spireLogon(driver, properties, propertiesFile, UMass.LOGIN_URL);
@@ -69,7 +74,7 @@ public class SpireAutomator {
                                     Map<String, Lecture> shoppingCart = new HashMap<>();
                                     ArrayList<Action> actions = new ArrayList<>();
                                     setExampleEnrollerConfig(driver, currentSchedule, shoppingCart, actions);
-                                    SpireEnrollment spireEnrollment = new SpireEnrollment(driver, currentSchedule, shoppingCart, actions);
+                                    SpireEnrollment spireEnrollment = new SpireEnrollment(driver, selectedTerm, currentSchedule, shoppingCart, actions);
                                     spireEnrollment.run();
                                     break;
                 case "houser":      Map<String, ResidentialArea> residentialAreas = new HashMap<>();

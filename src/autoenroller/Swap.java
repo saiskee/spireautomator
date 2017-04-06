@@ -48,8 +48,15 @@ public class Swap extends Action {
     public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
         WebDriver driver = spireEnrollment.getDriver();
-        // Go to the "swap" SPIRE tab.
-        UMass.findElementTab(spireEnrollment.getDriver(), "swap").click();
+        // Check if Swap is the current tab.
+        if(!UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
+                .getText().contains("Select a class to swap")) {
+            UMass.findElementTab(driver, "swap").click();
+        }
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(spireEnrollment)) {
+            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+        }
         // Select the Lecture to drop.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.SWAP_SCHEDULE_MENU_SELECTOR)))
                 .selectByValue(lectureToDrop.getClassId());

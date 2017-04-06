@@ -22,12 +22,14 @@ import java.util.*;
  */
 public class SpireEnrollment {
     private WebDriver driver;
+    private String selectedTerm;
     private Map<String, Lecture> currentSchedule;
     private Map<String, Lecture> shoppingCart;
     private ArrayList<Action> actions;
 
     public SpireEnrollment(WebDriver driver) {
         this.driver = driver;
+        this.selectedTerm = "";
         this.currentSchedule = new HashMap<>();
         this.shoppingCart = new HashMap<>();
         this.actions = new ArrayList<>();
@@ -38,8 +40,9 @@ public class SpireEnrollment {
         this.actions = actions;
     }
 
-    public SpireEnrollment(WebDriver driver, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
+    public SpireEnrollment(WebDriver driver, String selectedTerm, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
         this(driver);
+        this.selectedTerm = selectedTerm;
         this.currentSchedule = currentSchedule;
         this.shoppingCart = shoppingCart;
         this.actions = actions;
@@ -54,12 +57,20 @@ public class SpireEnrollment {
     public void run() {
         // Click on the link that goes to enrollment.
         UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLMENT_LINK_SELECTOR)).click();
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(this)) {
+            UMass.selectTerm(driver, this.getSelectedTerm());
+        }
 
         // Currently in the shopping cart. There may be some hardcoded Classes
         // used to create Actions, but this parses the actual current schedule and
         // shopping cart to prevent discrepancies. Duplicate Classes are prevented
         // with the use of a Map with keys of class IDs.
-        currentSchedule.putAll(parseCurrentSchedule());
+
+        // When there are no enrolled classes, this table will not exist, and will not be parsed.
+        if(UMass.isElementFound(driver, 5, By.cssSelector(UMass.CART_SCHEDULE_SELECTOR))) {
+            currentSchedule.putAll(parseCurrentSchedule());
+        }
         shoppingCart.putAll(parseShoppingCart());
         printCurrentSchedule();
         printShoppingCart();
@@ -180,6 +191,10 @@ public class SpireEnrollment {
         ArrayList<Discussion> otherDiscussions = new ArrayList<>();
         // Clicks on the "edit" tab at the top of SPIRE.
         UMass.findElementTab(driver, "edit").click();
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(this)) {
+            UMass.selectTerm(driver, this.getSelectedTerm());
+        }
         // Waits and finds enrolled Lectures dropdown list and selects Lecture with its class ID.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLED_DROPDOWN_SELECTOR))).selectByValue(lecture.getClassId());
         driver.findElement(By.cssSelector(UMass.EDIT_CONFIRM_STEP_1_SELECTOR)).click();
@@ -195,6 +210,10 @@ public class SpireEnrollment {
         }
         // Goes back to the shopping cart after all Discussions are parsed in.
         UMass.findElementTab(driver, "add").click();
+        // Check if SPIRE first needs to have a term selected.
+        if(UMass.checkSelectTerm(this)) {
+            UMass.selectTerm(driver, this.getSelectedTerm());
+        }
         return otherDiscussions;
     }
 
@@ -222,6 +241,10 @@ public class SpireEnrollment {
                     }
                 }
                 UMass.findElementTab(driver, "add").click();
+                // Check if SPIRE first needs to have a term selected.
+                if(UMass.checkSelectTerm(this)) {
+                    UMass.selectTerm(driver, this.getSelectedTerm());
+                }
                 cart.put(cartLecture.getClassId(),cartLecture);
             }
         }
@@ -306,6 +329,10 @@ public class SpireEnrollment {
 
     public WebDriver getDriver() {
         return driver;
+    }
+
+    public String getSelectedTerm() {
+        return selectedTerm;
     }
 
     public Map<String, Lecture> getCurrentSchedule() {
