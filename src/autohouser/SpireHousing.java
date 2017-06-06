@@ -67,6 +67,33 @@ public class SpireHousing {
 
         //TODO: Set preferences and priorities.
         //TODO: Use WebDriver to set search criteria and click search button.
+        Select s1TermSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S1_TERM_SELECT_SELECTOR)));
+        Select s1ProcessSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S1_PROCESS_SELECT_SELECTOR)));
+        WebElement s2BuildingRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S2_BUILDING_RADIO_SELECTOR));
+        WebElement s2ClusterRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S2_CLUSTER_RADIO_SELECTOR));
+        WebElement s2AreaRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S2_AREA_RADIO_SELECTOR));
+        WebElement s2AllRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S2_ALL_RADIO_SELECTOR));
+        Select s2BuildingSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S2_BUILDING_SELECT_SELECTOR)));
+        Select s2ClusterSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S2_CLUSTER_SELECT_SELECTOR)));
+        Select s2AreaSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S2_AREA_SELECT_SELECTOR)));
+        WebElement s3TypeRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S3_TYPE_RADIO_SELECTOR));
+        WebElement s3DesignRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S3_DESIGN_RADIO_SELECTOR));
+        WebElement s3FloorRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S3_FLOOR_RADIO_SELECTOR));
+        WebElement s3OptionRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S3_OPTION_RADIO_SELECTOR));
+        Select s3TypeSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S3_TYPE_SELECT_SELECTOR)));
+        Select s3DesignSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S3_DESIGN_SELECT_SELECTOR)));
+        Select s3FloorSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S3_FLOOR_SELECT_SELECTOR)));
+        Select s3OptionSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S3_OPTION_SELECT_SELECTOR)));
+        WebElement s4NoneRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S4_NONE_RADIO_SELECTOR));
+        WebElement s4RoomOpenRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S4_ROOM_OPEN_RADIO_SELECTOR));
+        WebElement s4SuiteOpenRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S4_SUITE_OPEN_RADIO_SELECTOR));
+        WebElement s4TypeRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S4_TYPE_RADIO_SELECTOR));
+        WebElement s4OpenDoubleRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S4_OPEN_DOUBLE_RADIO_SELECTOR));
+        WebElement s4OpenTripleRadio = UMass.waitForElement(driver, By.cssSelector(UMass.S4_OPEN_TRIPLE_RADIO_SELECTOR));
+        Select s4RoomOpenSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S4_ROOM_OPEN_SELECT_SELECTOR)));
+        Select s4SuiteOpenSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S4_SUITE_OPEN_SELECT_SELECTOR)));
+        Select s4TypeSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S4_TYPE_SELECT_SELECTOR)));
+        WebElement s5SearchNow = UMass.waitForElement(driver, By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR));
 
         System.out.println("Beginning automated refresh.");
         long previousTime = System.currentTimeMillis();

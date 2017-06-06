@@ -86,6 +86,34 @@ public class UMass {
     public static final String SEARCH_FOR_ROOM_SELECTOR = "#UM_H_DRV_RS_HOM_UMH_RMSRCH_LNK";
 
     // Room Search Criteria
+    public static final String S1_TERM_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_STRM";
+    public static final String S1_PROCESS_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_APPT_TYPE";
+    public static final String S2_BUILDING_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE";
+    public static final String S2_CLUSTER_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 11\\24";
+    public static final String S2_AREA_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 10\\24";
+    public static final String S2_ALL_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 68\\24";
+    public static final String S2_BUILDING_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG";
+    public static final String S2_CLUSTER_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG_SGRP";
+    public static final String S2_AREA_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG_GRP";
+    public static final String S3_TYPE_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL1";
+    public static final String S3_DESIGN_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL1\\24 36\\24";
+    public static final String S3_FLOOR_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL1\\24 37\\24";
+    public static final String S3_OPTION_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL1\\24 34\\24";
+    public static final String S3_TYPE_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_ROOM_TYPE";
+    public static final String S3_DESIGN_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_ROOM_DSGN";
+    public static final String S3_FLOOR_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_FLOOR";
+    public static final String S3_OPTION_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_LIV_OPT";
+    public static final String S4_NONE_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL2";
+    public static final String S4_ROOM_OPEN_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL2\\24 41\\24";
+    public static final String S4_SUITE_OPEN_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL2\\24 60\\24";
+    public static final String S4_TYPE_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL2\\24 50\\24";
+    public static final String S4_OPEN_DOUBLE_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL2\\24 52\\24";
+    public static final String S4_OPEN_TRIPLE_RADIO_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_RM_SRCH_QUAL2\\24 53\\24";
+    public static final String S4_ROOM_OPEN_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_ROOM_VAC_ALPHA";
+    public static final String S4_SUITE_OPEN_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_SUITE_VAC_ALPH";
+    public static final String S4_TYPE_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_ROOM_TYPE2";
+    public static final String S5_SEARCH_NOW_SELECTOR = "#UM_H_DRV_RMSRCH_SEARCH_PB";
+    //TODO: replace the following variables with equivalent variables above.
     public static final String STEP1_TERM_SELECTOR = "#UM_H_DRV_RMSRCH_STRM";
     public static final String STEP1_APPT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_APPT_TYPE";
     public static final String STEP2_BUILDING_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE";
