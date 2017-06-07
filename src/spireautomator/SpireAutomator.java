@@ -27,178 +27,252 @@ import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
  */
 public class SpireAutomator {
     public static void main(String[] args) {
-        File propertiesFile = new File(".spire.properties").getAbsoluteFile();
-        Properties properties = new Properties();
+        System.out.println(Arrays.toString(args));
         WebDriver driver;
-        if(propertiesFile.exists()) {
-            try {
-                properties.load(new FileInputStream(propertiesFile));
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
-        // Determine if the program is automating enrollment or housing.
-        // Selection may be set in and loaded from properties.
-        String automator = null;
-        if(args.length > 0 && (args[0].equals("enroller") || args[0].equals("houser"))) {
-            automator = args[0];
-            System.out.println("Save automator? (y/n)");
-            if(new Scanner(System.in).nextLine().equals("y")) {
-                setAndStoreProperties("automator", automator, properties, propertiesFile);
-            }
-        }else if(properties.get("automator") != null) {
-            automator = properties.get("automator").toString();
-        } else {
-            System.out.println("This program requires one parameter. The options are:\nenroller\nhouser");
-        }
-        //TODO: Find a better way to store automated-specific persistent data. Individual .properties files?
-        String selectedTerm = "";
-        if(args.length > 1) {
-            selectedTerm = args[1];
-        }
-        if(automator != null) {
-            driver = getWebDriver(properties, propertiesFile);
-            spireLogon(driver, properties, propertiesFile, UMass.LOGIN_URL);
-
-            // SPIRE is normally shown as a webpage within a webpage.
-            // The subwebpage's code is hard to access while it is nested.
-            // This line explicitly waits until the internal frame is present
-            // and then loads it into the driver as the main webpage.
-            driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
-            // Wait in case there is an error popup (seen on Firefox, not Chrome).
-            UMass.sleep(500);
-
-            // Go into the appropriate automator program.
-            switch(automator) {
-                case "enroller":    Map<String, Lecture> currentSchedule = new HashMap<>();
-                                    Map<String, Lecture> shoppingCart = new HashMap<>();
-                                    ArrayList<Action> actions = new ArrayList<>();
-                                    setExampleEnrollerConfig(driver, currentSchedule, shoppingCart, actions);
-                                    SpireEnrollment spireEnrollment = new SpireEnrollment(driver, selectedTerm, currentSchedule, shoppingCart, actions);
-                                    spireEnrollment.run();
-                                    break;
-                case "houser":      Map<String, ResidentialArea> residentialAreas = new HashMap<>();
-                                    setResidentialAreaConfig(residentialAreas);
-                                    SpireHousing spireHousing = new SpireHousing(driver, residentialAreas);
-                                    spireHousing.run();
-                                    break;
+        Automator automator = Automator.NONE;
+        Browser browser = Browser.NONE;
+        String username = "";
+        String password = "";
+        String term = "";
+//        File propertiesFile = new File(".spire.properties").getAbsoluteFile();
+//        Properties properties = new Properties();
+//        if(propertiesFile.exists()) {
+//            try {
+//                properties.load(new FileInputStream(propertiesFile));
+//            } catch(Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+        for(String arg : args) {
+            String param = arg.split("=")[0].trim().toLowerCase();
+            String value = arg.split("=")[1].trim().toLowerCase();
+            switch(param) {
+                case "automator":   switch(value) {
+                                        case "enroller":    automator = Automator.ENROLLER; break;
+                                        case "houser":      automator = Automator.HOUSER;   break;
+                                        default:            break;
+                                    }   break;
+                case "browser":     switch(value) {
+                                        case "chrome":  browser = Browser.CHROME;     break;
+                                        case "firefox": browser = Browser.FIREFOX;    break;
+                                        default:        break;
+                                    }   break;
+                case "username":    username = value;   break;
+                case "password":    password = value;   break;
+                case "term":        term = value;       break;
                 default:            break;
             }
         }
+//        // Determine if the program is automating enrollment or housing.
+//        // Selection may be set in and loaded from properties.
+//        if(args.length > 0 && (args[0].equals("enroller") || args[0].equals("houser"))) {
+//            automator = args[0];
+//            System.out.println("Save automator? (y/n)");
+//            if(new Scanner(System.in).nextLine().equals("y")) {
+//                setAndStoreProperties("automator", automator, properties, propertiesFile);
+//            }
+//        }else if(properties.get("automator") != null) {
+//            automator = properties.get("automator").toString();
+//        } else {
+//            System.out.println("This program requires one parameter. The options are:\nenroller\nhouser");
+//        }
+        //TODO: Find a better way to store automated-specific persistent data. Individual .properties files?
+        driver = getWebDriver(browser);
+        spireLogon(driver, username, password, UMass.LOGIN_URL);
+
+        // SPIRE is normally shown as a webpage within a webpage.
+        // The subwebpage's code is hard to access while it is nested.
+        // This line explicitly waits until the internal frame is present
+        // and then loads it into the driver as the main webpage.
+        driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
+        // Wait in case there is an error popup (seen on Firefox, not Chrome).
+        UMass.sleep(500);
+
+        while(automator == Automator.NONE) {
+            System.out.println("Automator?\n1: Enroller\n2: Houser");
+            switch(new Scanner(System.in).nextInt()) {
+                case 1:     automator = Automator.ENROLLER;   break;
+                case 2:     automator = Automator.HOUSER;     break;
+                default:    break;
+            }
+        }
+        // Go into the appropriate automator program.
+        switch(automator) {
+            case ENROLLER:      Map<String, Lecture> currentSchedule = new HashMap<>();
+                                Map<String, Lecture> shoppingCart = new HashMap<>();
+                                ArrayList<Action> actions = new ArrayList<>();
+                                setExampleEnrollerConfig(driver, currentSchedule, shoppingCart, actions);
+                                SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
+                                spireEnrollment.run();
+                                break;
+            case HOUSER:        Map<String, ResidentialArea> residentialAreas = new HashMap<>();
+                                setResidentialAreaConfig(residentialAreas);
+                                SpireHousing spireHousing = new SpireHousing(driver, residentialAreas);
+                                spireHousing.run();
+                                break;
+            case NONE:          break;
+            default:            break;
+        }
     }
 
-    public static void spireLogon(WebDriver driver, Properties properties, File propertiesFile, String url) {
+    public static void spireLogon(WebDriver driver, String username, String password, String url) {
         driver.get(url);
         do {
+            if(username.equals("")) {
+                System.out.println("Username:");
+                username = new Scanner(System.in).nextLine();
+            }
+            if(password.equals("")) {
+                System.out.println("Password:");
+                Console console = System.console();
+                if(console != null) {
+                    password = new String(console.readPassword());
+                } else {
+                    password = new Scanner(System.in).nextLine();
+                }
+            }
             // Explicitly waits for the Username field to load and types username.
-            UMass.waitForElement(driver, By.id(UMass.USERNAME_ID)).sendKeys(getUsername(properties, propertiesFile));
+            UMass.waitForElement(driver, By.id(UMass.USERNAME_ID)).sendKeys(username);
             // Presence of Username means Password and Go button are loaded too.
-            driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(getPassword(properties, propertiesFile));
+            driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(password);
             driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();
             UMass.sleep(1000);
             // The page will be "SPIRE Logon" as long as the user is not logged in.
         } while(driver.getTitle().equals("SPIRE Logon"));
     }
 
-    private static String getUsername(Properties properties, File propertiesFile) {
-        if(properties.getProperty("username") != null) {
-            return properties.getProperty("username");
-        } else {
-            System.out.println("Username:");
-            String username = new Scanner(System.in).nextLine();
-            System.out.println("Save username? (y/n)");
-            if(new Scanner(System.in).nextLine().equals("y")) {
-                properties.setProperty("username", username);
-                storeProperties(properties, propertiesFile);
-            }
-            return username;
-        }
+//    private static String getUsername(Properties properties, File propertiesFile) {
+//        if(properties.getProperty("username") != null) {
+//            return properties.getProperty("username");
+//        } else {
+//            System.out.println("Username:");
+//            String username = new Scanner(System.in).nextLine();
+//            System.out.println("Save username? (y/n)");
+//            if(new Scanner(System.in).nextLine().equals("y")) {
+//                properties.setProperty("username", username);
+//                storeProperties(properties, propertiesFile);
+//            }
+//            return username;
+//        }
+//    }
 
-    }
+//    private static String getPassword(Properties properties, File propertiesFile) {
+//        if(properties.getProperty("password") != null) {
+//            return properties.getProperty("password");
+//        } else {
+//            System.out.println("Password:");
+//            String password;
+//            Console console = System.console();
+//            if(console != null) {
+//                password = new String(console.readPassword());
+//            } else {
+//                password = new Scanner(System.in).nextLine();
+//            }
+//            System.out.println("Save password? (y/n)");
+//            if(new Scanner(System.in).nextLine().equals("y")) {
+//                properties.setProperty("password", password);
+//                storeProperties(properties, propertiesFile);
+//            }
+//            return password;
+//        }
+//    }
 
-    private static String getPassword(Properties properties, File propertiesFile) {
-        if(properties.getProperty("password") != null) {
-            return properties.getProperty("password");
-        } else {
-            System.out.println("Password:");
-            String password;
-            Console console = System.console();
-            if(console != null) {
-                password = new String(console.readPassword());
-            } else {
-                password = new Scanner(System.in).nextLine();
-            }
-            System.out.println("Save password? (y/n)");
-            if(new Scanner(System.in).nextLine().equals("y")) {
-                properties.setProperty("password", password);
-                storeProperties(properties, propertiesFile);
-            }
-            return password;
-        }
-    }
-
-    public static WebDriver getWebDriver(Properties properties, File propertiesFile) {
+    public static WebDriver getWebDriver(Browser browser) {
         WebDriver driver = null;
-        int browserNum;
-        if (properties.getProperty("browser") != null) {
-            browserNum = Integer.valueOf(properties.getProperty("browser"));
-        } else {
-            do {
-                System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
-                browserNum = new Scanner(System.in).nextInt();
-                if (!(browserNum == 1 || browserNum == 2)) {
-                    browserNum = -1;
-                }
-            } while (browserNum == -1);
-            System.out.println("Save browser choice? (y/n)");
-            if (new Scanner(System.in).nextLine().equals("y")) {
-                setAndStoreProperties("browser", ""+browserNum, properties, propertiesFile);
+        while (browser == Browser.NONE) {
+            System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
+            switch(new Scanner(System.in).nextInt()) {
+                case 1:     browser = Browser.CHROME;   break;
+                case 2:     browser = Browser.FIREFOX;  break;
+                default:    break;
             }
         }
-        if (browserNum == 1) {
-            if (IS_OS_WINDOWS) {
-                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_WIN32);
-            } else if (IS_OS_MAC) {
-                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_MAC64);
-            } else if (IS_OS_LINUX) {
-                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_LINUX64);
-            }
-            driver = new ChromeDriver();
-        } else if (browserNum == 2) {
-            if (IS_OS_WINDOWS) {
-                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_WIN64);
-            } else if (IS_OS_MAC) {
-                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_MACOS);
-            } else if (IS_OS_LINUX) {
-                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_LINUX64);
-            }
-            driver = new FirefoxDriver();
+        switch(browser) {
+            case CHROME:    if (IS_OS_WINDOWS) {
+                                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_WIN32);
+                            } else if (IS_OS_MAC) {
+                                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_MAC64);
+                            } else if (IS_OS_LINUX) {
+                                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_LINUX64);
+                            }
+                            driver = new ChromeDriver();
+                            break;
+            case FIREFOX:    if (IS_OS_WINDOWS) {
+                                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_WIN64);
+                            } else if (IS_OS_MAC) {
+                                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_MACOS);
+                            } else if (IS_OS_LINUX) {
+                                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_LINUX64);
+                            }
+                            driver = new FirefoxDriver();
+                            break;
+            case NONE:      break;
         }
         return driver;
     }
 
-    public static void setAndStoreProperties(String key, String value, Properties properties, File propertiesFile) {
-        properties.setProperty(key, value);
-        storeProperties(properties, propertiesFile);
-    }
+//    public static WebDriver getWebDriver(Properties properties, File propertiesFile) {
+//        WebDriver driver = null;
+//        int browserNum;
+//        if (properties.getProperty("browser") != null) {
+//            browserNum = Integer.valueOf(properties.getProperty("browser"));
+//        } else {
+//            do {
+//                System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
+//                browserNum = new Scanner(System.in).nextInt();
+//                if (!(browserNum == 1 || browserNum == 2)) {
+//                    browserNum = -1;
+//                }
+//            } while (browserNum == -1);
+//            System.out.println("Save browser choice? (y/n)");
+//            if (new Scanner(System.in).nextLine().equals("y")) {
+//                setAndStoreProperties("browser", ""+browserNum, properties, propertiesFile);
+//            }
+//        }
+//        if (browserNum == 1) {
+//            if (IS_OS_WINDOWS) {
+//                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_WIN32);
+//            } else if (IS_OS_MAC) {
+//                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_MAC64);
+//            } else if (IS_OS_LINUX) {
+//                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_LINUX64);
+//            }
+//            driver = new ChromeDriver();
+//        } else if (browserNum == 2) {
+//            if (IS_OS_WINDOWS) {
+//                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_WIN64);
+//            } else if (IS_OS_MAC) {
+//                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_MACOS);
+//            } else if (IS_OS_LINUX) {
+//                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_LINUX64);
+//            }
+//            driver = new FirefoxDriver();
+//        }
+//        return driver;
+//    }
 
-    public static void storeProperties(Properties properties, File propertiesFile) {
-        if(!propertiesFile.exists()) {
-            try {
-                if(propertiesFile.createNewFile()) {
-                    //TODO: "FileNotFoundException (access is denied)" when writing to hidden file, works on normal file.
-                    // Files.setAttribute(propertiesFile.toPath(), "dos:hidden", true);
-                }
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            properties.store(new FileOutputStream(propertiesFile), "");
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void setAndStoreProperties(String key, String value, Properties properties, File propertiesFile) {
+//        properties.setProperty(key, value);
+//        storeProperties(properties, propertiesFile);
+//    }
+
+//    public static void storeProperties(Properties properties, File propertiesFile) {
+//        if(!propertiesFile.exists()) {
+//            try {
+//                if(propertiesFile.createNewFile()) {
+//                    //TODO: "FileNotFoundException (access is denied)" when writing to hidden file, works on normal file.
+//                    // Files.setAttribute(propertiesFile.toPath(), "dos:hidden", true);
+//                }
+//            } catch(Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        try {
+//            properties.store(new FileOutputStream(propertiesFile), "");
+//        } catch(Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * Sets an example configuration of the current schedule,
