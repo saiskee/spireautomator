@@ -113,16 +113,6 @@ public class UMass {
     public static final String S4_SUITE_OPEN_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_SUITE_VAC_ALPH";
     public static final String S4_TYPE_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_ROOM_TYPE2";
     public static final String S5_SEARCH_NOW_SELECTOR = "#UM_H_DRV_RMSRCH_SEARCH_PB";
-    //TODO: replace the following variables with equivalent variables above.
-    public static final String STEP1_TERM_SELECTOR = "#UM_H_DRV_RMSRCH_STRM";
-    public static final String STEP1_APPT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_APPT_TYPE";
-    public static final String STEP2_BUILDING_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE";
-    public static final String STEP2_BUILDING_DROP_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG";
-    public static final String STEP2_CLUSTER_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 11\\24";
-    public static final String STEP2_CLUSTER_DROP_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG_SGRP";
-    public static final String STEP2_AREA_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 10\\24";
-    public static final String STEP2_AREA_DROP_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_BLDG_GRP";
-    public static final String STEP2_ALL_HALLS_SELECTOR = "#win0divUM_H_DRV_RMSRCH_UMH_RM_SRCH_SCOPE\\24 68\\24";
 
     //TODO: Find HTML/CSS selectors for rooms results table.
     // Room Search Results
