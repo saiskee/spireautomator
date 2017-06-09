@@ -24,12 +24,12 @@ public class SpireHousing {
 
     public SpireHousing() {
         this.driver = null;
-        step2Radio = null;
-        step3Radio = null;
-        step4Radio = null;
-        step2Select = "";
-        step3Select = "";
-        step4Select = "";
+        this.step2Radio = null;
+        this.step3Radio = null;
+        this.step4Radio = null;
+        this.step2Select = "";
+        this.step3Select = "";
+        this.step4Select = "";
         this.residentialAreas = new HashMap<>();
     }
 
