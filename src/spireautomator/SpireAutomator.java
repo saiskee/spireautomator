@@ -3,6 +3,7 @@ package spireautomator;
 import autoenroller.*;
 import autohouser.Building;
 import autohouser.ResidentialArea;
+import autohouser.RoomSearch;
 import autohouser.SpireHousing;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -144,6 +145,52 @@ public class SpireAutomator {
             case HOUSER:        Map<String, ResidentialArea> residentialAreas = new HashMap<>();
                                 setResidentialAreaConfig(residentialAreas);
                                 SpireHousing spireHousing = new SpireHousing(driver, residentialAreas);
+                                // Term is relevant to several automators so it is retrieved earlier.
+                                spireHousing.setStep1TermSelect(term);
+                                // Reprocess each command-line argument to find arguments for houser.
+                                for(String arg : args) {
+                                    String[] argSplit = arg.split("=");
+                                    // Only parse the argument if it is splittable, such as "param=value"
+                                    if(argSplit.length > 1) {
+                                        // Do not alter the input strings, fields may need to be exact (ex. password).
+                                        String param = argSplit[0];
+                                        String value = argSplit[1];
+                                        switch(param.toLowerCase()) {
+                                            // Inside this switch statement it is okay to lowercase the input strings
+                                            // because the input strings themselves are not passed to something important.
+                                            case "s2radio":     switch(value.toLowerCase()) {
+                                                case "building":    spireHousing.setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
+                                                case "cluster":     spireHousing.setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
+                                                case "area":        spireHousing.setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
+                                                case "all":         spireHousing.setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
+                                                default:            break;
+                                            }   break;
+                                            case "s3radio":     switch(value.toLowerCase()) {
+                                                case "type":        spireHousing.setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
+                                                case "design":      spireHousing.setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
+                                                case "floor":       spireHousing.setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
+                                                case "option":      spireHousing.setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
+                                                default:            break;
+                                            }   break;
+                                            case "s4radio":     switch(value.toLowerCase()) {
+                                                case "none":        spireHousing.setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
+                                                case "room_open":   spireHousing.setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
+                                                case "suite_open":  spireHousing.setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
+                                                case "type":        spireHousing.setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
+                                                case "open_double": spireHousing.setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
+                                                case "open_triple": spireHousing.setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
+                                                default:            break;
+                                            }   break;
+                                            // Here the values are passed along to something case-sensitive
+                                            // so the input strings cannot be lowercased.
+                                            case "process":     spireHousing.setStep1ProcessSelect(value);  break;
+                                            case "s2select":    spireHousing.setStep2Select(value); break;
+                                            case "s3select":    spireHousing.setStep3Select(value); break;
+                                            case "s4select":    spireHousing.setStep4Select(value); break;
+                                            default:            break;
+                                        }
+                                    }
+                                }
                                 spireHousing.run();
                                 break;
             default:            break;
