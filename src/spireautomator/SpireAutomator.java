@@ -29,6 +29,7 @@ public class SpireAutomator {
         String username = null;
         String password = null;
         String term = null;
+        int numSearches = -1;
 
         // Process each command-line argument.
         for(String arg : args) {
@@ -49,11 +50,14 @@ public class SpireAutomator {
                         case "houser":      automator = Automator.HOUSER;   break;
                         default:            break;
                     }   break;
-                    case "username":    username = value;   break;
-                    case "password":    password = value;   break;
-                    case "term":        term = value;       break;
+                    case "username":    username = value;                       break;
+                    case "password":    password = value;                       break;
+                    case "term":        term = value;                           break;
+                    case "searches":    numSearches = Integer.valueOf(value);   break;
                     default:            break;
                 }
+            } else if(arg.trim().toLowerCase().equals("help")) {
+                printHelp();
             }
         }
         // If no preferred browser was provided, prompt for one.
@@ -144,9 +148,20 @@ public class SpireAutomator {
                                 break;
             case HOUSER:        Map<String, ResidentialArea> residentialAreas = new HashMap<>();
                                 setResidentialAreaConfig(residentialAreas);
-                                SpireHousing spireHousing = new SpireHousing(driver, residentialAreas);
+                                // Get the number of search configurations from the user if not provided.
+                                while(numSearches < 0) {
+                                    System.out.println("Number of search criteria configurations?");
+                                    numSearches = new Scanner(System.in).nextInt();
+                                }
+                                // Initialize an array of search configurations.
+                                RoomSearch[] searches = new RoomSearch[numSearches];
+                                for(int i = 0; i < searches.length; i++) {
+                                    searches[i] = new RoomSearch();
+                                }
+                                // Configure only the first search configuration with runtime arguments.
+                                // Additional configurations need to be configured in runtime.
                                 // Term is relevant to several automators so it is retrieved earlier.
-                                spireHousing.setStep1TermSelect(term);
+                                searches[0].setStep1TermSelect(term);
                                 // Reprocess each command-line argument to find arguments for houser.
                                 for(String arg : args) {
                                     String[] argSplit = arg.split("=");
@@ -159,38 +174,39 @@ public class SpireAutomator {
                                             // Inside this switch statement it is okay to lowercase the input strings
                                             // because the input strings themselves are not passed to something important.
                                             case "s2radio":     switch(value.toLowerCase()) {
-                                                case "building":    spireHousing.setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
-                                                case "cluster":     spireHousing.setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
-                                                case "area":        spireHousing.setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
-                                                case "all":         spireHousing.setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
+                                                case "building":    searches[0].setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
+                                                case "cluster":     searches[0].setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
+                                                case "area":        searches[0].setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
+                                                case "all":         searches[0].setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
                                                 default:            break;
                                             }   break;
                                             case "s3radio":     switch(value.toLowerCase()) {
-                                                case "type":        spireHousing.setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
-                                                case "design":      spireHousing.setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
-                                                case "floor":       spireHousing.setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
-                                                case "option":      spireHousing.setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
+                                                case "type":        searches[0].setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
+                                                case "design":      searches[0].setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
+                                                case "floor":       searches[0].setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
+                                                case "option":      searches[0].setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
                                                 default:            break;
                                             }   break;
                                             case "s4radio":     switch(value.toLowerCase()) {
-                                                case "none":        spireHousing.setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
-                                                case "room_open":   spireHousing.setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
-                                                case "suite_open":  spireHousing.setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
-                                                case "type":        spireHousing.setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
-                                                case "open_double": spireHousing.setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
-                                                case "open_triple": spireHousing.setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
+                                                case "none":        searches[0].setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
+                                                case "room_open":   searches[0].setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
+                                                case "suite_open":  searches[0].setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
+                                                case "type":        searches[0].setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
+                                                case "open_double": searches[0].setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
+                                                case "open_triple": searches[0].setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
                                                 default:            break;
                                             }   break;
                                             // Here the values are passed along to something case-sensitive
                                             // so the input strings cannot be lowercased.
-                                            case "process":     spireHousing.setStep1ProcessSelect(value);  break;
-                                            case "s2select":    spireHousing.setStep2Select(value); break;
-                                            case "s3select":    spireHousing.setStep3Select(value); break;
-                                            case "s4select":    spireHousing.setStep4Select(value); break;
+                                            case "process":     searches[0].setStep1ProcessSelect(value);  break;
+                                            case "s2select":    searches[0].setStep2Select(value); break;
+                                            case "s3select":    searches[0].setStep3Select(value); break;
+                                            case "s4select":    searches[0].setStep4Select(value); break;
                                             default:            break;
                                         }
                                     }
                                 }
+                                SpireHousing spireHousing = new SpireHousing(driver, searches, residentialAreas);
                                 spireHousing.run();
                                 break;
             default:            break;
@@ -403,5 +419,10 @@ public class SpireAutomator {
         residentialAreas.put(honors.getId(), honors);
         residentialAreas.put(north.getId(), north);
         residentialAreas.put(sylvan.getId(), sylvan);
+    }
+
+    private static void printHelp() {
+        System.out.println("This is a help statement.");
+        System.exit(0);
     }
 }
