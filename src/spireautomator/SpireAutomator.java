@@ -422,7 +422,36 @@ public class SpireAutomator {
     }
 
     private static void printHelp() {
-        System.out.println("This is a help statement.");
+        int separatorLength = 40;
+
+        System.out.println(getHeaderSeparator("GENERAL", 40));
+        System.out.println("browser=[chrome,firefox]");
+        System.out.println("automator=[enroller,houser]");
+        System.out.println("username");
+        System.out.println("password");
+        System.out.println("term");
+        System.out.println("searches");
+        System.out.println(getHeaderSeparator("ENROLLER", 40));//8
+        System.out.println(getHeaderSeparator("HOUSER", 40));//6
+        System.out.println("process");
+        System.out.println("s2radio=[building,cluster,area,all]");
+        System.out.println("s2select");
+        System.out.println("s3radio=[type,design,floor,option]");
+        System.out.println("s3select");
+        System.out.println("s4radio=none,room_open,suite_open,type,open_double,open_triple");
+        System.out.println("s4select");
         System.exit(0);
+    }
+
+    private static String getHeaderSeparator(String header, int length) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < Math.floor(length-header.length()/2); i++) {
+            sb.append("-");
+        }
+        sb.append(header.toUpperCase());
+        for(int i = 0; i < Math.ceil(length-header.length()/2); i++) {
+            sb.append("-");
+        }
+        return sb.toString();
     }
 }
