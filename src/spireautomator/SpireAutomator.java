@@ -30,35 +30,40 @@ public class SpireAutomator {
         String password = null;
         String term = null;
 
-        // Process each command-line argument.
-        for(String arg : args) {
-            String[] argSplit = arg.split("=");
-            // Only parse the argument if it is splittable, such as "param=value"
-            if(argSplit.length > 1) {
-                // Do not alter the input strings, fields may need to be exact (ex. password).
-                String param = argSplit[0];
-                String value = argSplit[1];
-                switch(param) {
-                    case "browser":     switch(value) {
-                        case "chrome":  browser = Browser.CHROME;     break;
-                        case "firefox": browser = Browser.FIREFOX;    break;
-                        default:        break;
-                    }   break;
-                    case "automator":   switch(value) {
-                        case "enroller":    automator = Automator.ENROLLER; break;
-                        case "houser":      automator = Automator.HOUSER;   break;
+        if(args.length > 0) {
+            // Process each command-line argument.
+            for(String arg : args) {
+                String[] argSplit = arg.split("=");
+                // Only parse the argument if it is splittable, such as "param=value"
+                if(argSplit.length > 1) {
+                    // Do not alter the input strings, fields may need to be exact (ex. password).
+                    String param = argSplit[0];
+                    String value = argSplit[1];
+                    switch(param) {
+                        case "browser":     switch(value) {
+                            case "chrome":  browser = Browser.CHROME;     break;
+                            case "firefox": browser = Browser.FIREFOX;    break;
+                            default:        break;
+                        }   break;
+                        case "automator":   switch(value) {
+                            case "enroller":    automator = Automator.ENROLLER; break;
+                            case "houser":      automator = Automator.HOUSER;   break;
+                            default:            break;
+                        }   break;
+                        case "username":    username = value;                       break;
+                        case "password":    password = value;                       break;
+                        case "term":        term = value;                           break;
                         default:            break;
-                    }   break;
-                    case "username":    username = value;                       break;
-                    case "password":    password = value;                       break;
-                    case "term":        term = value;                           break;
-//                    case "searches":    numSearches = Integer.valueOf(value);   break;
-                    default:            break;
+                    }
+                } else if(arg.trim().toLowerCase().equals("help")) {
+                    printHelp();
                 }
-            } else if(arg.trim().toLowerCase().equals("help")) {
-                printHelp();
             }
+        } else {
+            System.out.println("Add \"help\" to your program arguments/parameters to learn how to use this program.");
+            // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
+
         // If no preferred browser was provided, prompt for one.
         while (browser == null) {
             System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
@@ -141,7 +146,7 @@ public class SpireAutomator {
             case ENROLLER:      Map<String, Lecture> currentSchedule = new HashMap<>();
                                 Map<String, Lecture> shoppingCart = new HashMap<>();
                                 ArrayList<Action> actions = new ArrayList<>();
-                                setExampleEnrollerConfig(driver, currentSchedule, shoppingCart, actions);
+                                setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
                                 SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
                                 spireEnrollment.run();
                                 break;
@@ -227,7 +232,7 @@ public class SpireAutomator {
      * @param shoppingCart      Hardcoded shopping cart in SPIRE.
      * @param actions           Hardcoded actions to perform on SPIRE.
      */
-    private static void setExampleEnrollerConfig(WebDriver driver, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
+    private static void setEnrollerConfiguration(WebDriver driver, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
         // Start current schedule.
         Lecture compsci311_01 = new Lecture("COMPSCI 311-01", "Introduction to Algorithms", "14784");
         Discussion compsci311_01aa = new Discussion("COMPSCI 311-01AA", "14785");
@@ -429,11 +434,12 @@ public class SpireAutomator {
 
     private static void printHelp() {
         int separatorLength = 80;
+        System.out.println(getHeaderSeparator("INTRODUCTION", separatorLength));
         System.out.println("This SPIRE Automator takes runtime arguments to set its functional configurations.");
-        System.out.println("Each header lists the runtime arguments relevant to that automator.");
+        System.out.println("Each section describes an automator and lists its needed runtime arguments.");
         System.out.println("Some arguments can understand only the values that are listed below.");
         System.out.println("Arguments listed below that do not list predefined values may take any input.");
-        System.out.println("If an argument is given a value that is not listed below,");
+        System.out.println("If an argument with predefined values is given a value that is not listed below,");
         System.out.println("\tthe program will treat that argument as if it had not been set at all.");
         System.out.println("If an argument is not set, the automator will prompt the user for it if it is needed.");
         System.out.println("The automator will not prompt the user for unnecessary arguments.");
@@ -441,21 +447,34 @@ public class SpireAutomator {
         System.out.println("\tespecially arguments without predefined values. Here is an example of a good command:");
         System.out.println("\tjava spireautomator.SpireAutomator \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
         System.out.println(getHeaderSeparator("GENERAL", separatorLength));
-        System.out.println("browser=[chrome, firefox]");
-        System.out.println("automator=[enroller, houser]");
-        System.out.println("username");
-        System.out.println("password");
-        System.out.println("term");
+        System.out.println("The following are runtime arguments used universally by all automators:");
+        System.out.println("\tbrowser=[chrome, firefox]");
+        System.out.println("\tautomator=[enroller, houser]");
+        System.out.println("\tusername");
+        System.out.println("\tpassword");
+        System.out.println("\tterm");
         System.out.println(getHeaderSeparator("ENROLLER", separatorLength));
+        System.out.println("The enroller automates the process of searching for and adding/dropping/editing/swapping");
+        System.out.println("\tclasses in SPIRE. Complex performing conditions for actions may be specified as well.");
+        System.out.println("There are no runtime arguments needed for the enrollment automator.");
+        System.out.println("Enroller configurations must be hardcoded and passed to the automator.");
+        System.out.println("An editable example of enroller configurations may be found in:");
+        System.out.println("\tspireautomator.SpireAutomator.setEnrollerConfiguration()");
         System.out.println(getHeaderSeparator("HOUSER", separatorLength));
-        System.out.println("searches=[>1]");
-        System.out.println("process");
-        System.out.println("s2radio=[building, cluster, area, all]");
-        System.out.println("s2select");
-        System.out.println("s3radio=[type, design, floor, option]");
-        System.out.println("s3select");
-        System.out.println("s4radio=[none, room_open, suite_open, type, open_double, open_triple]");
-        System.out.println("s4select");
+        System.out.println("The houser automates the process of searching for and assigning oneself to a room in SPIRE.");
+        System.out.println("The houser is capable of searching for rooms using the same search criteria that the main");
+        System.out.println("\tSPIRE website provides, parsing the available rooms, determining whether an available room");
+        System.out.println("\tis better than the room currently assigned to the user, and assigning oneself to the room.");
+        System.out.println("The automator will prompt the user for input if a value is needed but not set.");
+        System.out.println("The following arguments are used by this automator:");
+        System.out.println("\tsearches=[>1]");
+        System.out.println("\tprocess");
+        System.out.println("\ts2radio=[building, cluster, area, all]");
+        System.out.println("\ts2select");
+        System.out.println("\ts3radio=[type, design, floor, option]");
+        System.out.println("\ts3select");
+        System.out.println("\ts4radio=[none, room_open, suite_open, type, open_double, open_triple]");
+        System.out.println("\ts4select");
         System.exit(0);
     }
 
