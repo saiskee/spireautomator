@@ -167,6 +167,7 @@ public class SpireHousing {
             UMass.sleep(waitInterval);
             driver.findElement(By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR)).click();
             //TODO: PARSE ROOMS INTO RESIDENTIAL AREA STRUCTURE
+            parseRooms();
             //TODO: CLICK "NEW SEARCH" BUTTON ON SEARCH RESULTS
             // The program repeatedly loops through all of the searches.
             if(cur >= searches.length-1) {
@@ -182,11 +183,12 @@ public class SpireHousing {
         // Gets the size of the rooms search results table and iterates over each row.
         // Skips the first row; it's just header labels.
         for(int row = 1; row < UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_RESULTS_SELECTOR)).findElements(By.tagName("tr")).size(); row++) {
-            String building = UMass.findElementRoomsResults(driver, row, 0).getText();
-            String number = UMass.findElementRoomsResults(driver, row, 1).getText();
-            String design = UMass.findElementRoomsResults(driver, row, 5).getText();
-            String type =  UMass.findElementRoomsResults(driver, row, 6).getText();
+            String building = UMass.findElementRoomsResults(driver, row, 1).getText();
+            String number = UMass.findElementRoomsResults(driver, row, 2).getText();
+            String design = UMass.findElementRoomsResults(driver, row, 6).getText();
+            String type =  UMass.findElementRoomsResults(driver, row, 7).getText();
             //TODO: Construct rooms.
+//            System.out.println("building="+building+" number="+number+" design="+design+" type="+type);
             Room room = new Room(residentialAreas, building, number, design, type);
         }
         return rooms;

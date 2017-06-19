@@ -114,9 +114,8 @@ public class UMass {
     public static final String S4_TYPE_SELECT_SELECTOR = "#UM_H_DRV_RMSRCH_UMH_ROOM_TYPE2";
     public static final String S5_SEARCH_NOW_SELECTOR = "#UM_H_DRV_RMSRCH_SEARCH_PB";
 
-    //TODO: Find HTML/CSS selectors for rooms results table.
     // Room Search Results
-    public static final String ROOMS_RESULTS_SELECTOR = null;
+    public static final String ROOMS_RESULTS_SELECTOR = "#UMH_RM_SRC_RSLTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
 
     // Returns elements of the select term table on the select term page.
     public static WebElement findElementTermTable(WebDriver driver, int row, int col) {
@@ -150,9 +149,8 @@ public class UMass {
         return waitForElement(driver, By.cssSelector("#trHS_APPOINTMENTS\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
-    //TODO: Find HTML/CSS selector for rooms results table.
     public static WebElement findElementRoomsResults(WebDriver driver, int row, int col) {
-        return waitForElement(driver, By.cssSelector(null));
+        return waitForElement(driver, By.cssSelector("#trUMH_RM_SRC_RSLTS\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
     public static WebElement findElementTab(WebDriver driver, String tabName) {

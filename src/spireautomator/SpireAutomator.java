@@ -10,7 +10,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-import java.io.Console;
+import java.io.*;
 import java.util.*;
 
 import static org.apache.commons.lang3.SystemUtils.IS_OS_LINUX;
@@ -29,6 +29,7 @@ public class SpireAutomator {
         String username = null;
         String password = null;
         String term = null;
+        File asciiArt = new File("asciiArt");
 
         if(args.length > 0) {
             // Process each command-line argument.
@@ -56,7 +57,7 @@ public class SpireAutomator {
                         default:            break;
                     }
                 } else if(arg.trim().toLowerCase().equals("help")) {
-                    printHelp();
+                    printHelp(asciiArt);
                 }
             }
         } else {
@@ -364,6 +365,7 @@ public class SpireAutomator {
         ResidentialArea honors = new ResidentialArea("Honors");
         ResidentialArea north = new ResidentialArea("North");
         ResidentialArea sylvan = new ResidentialArea("Sylvan");
+        ResidentialArea lincoln = new ResidentialArea("Lincoln");
 
         orchardHill.put(new Building("Dickinson"));
         orchardHill.put(new Building("Webster"));
@@ -423,6 +425,19 @@ public class SpireAutomator {
         southwest.put(new Building("Prince"));
         southwest.put(new Building("Washington"));
 
+        lincoln.put(new Building("Lincoln 01"));
+        lincoln.put(new Building("Lincoln 02"));
+        lincoln.put(new Building("Lincoln 03"));
+        lincoln.put(new Building("Lincoln 04"));
+        lincoln.put(new Building("Lincoln 05"));
+        lincoln.put(new Building("Lincoln 06"));
+        lincoln.put(new Building("Lincoln 07"));
+        lincoln.put(new Building("Lincoln 08"));
+        lincoln.put(new Building("Lincoln 09"));
+        lincoln.put(new Building("Lincoln 10"));
+        lincoln.put(new Building("Lincoln 11"));
+
+
         residentialAreas.put(orchardHill.getId(), orchardHill);
         residentialAreas.put(central.getId(), central);
         residentialAreas.put(northeast.getId(), northeast);
@@ -430,10 +445,17 @@ public class SpireAutomator {
         residentialAreas.put(honors.getId(), honors);
         residentialAreas.put(north.getId(), north);
         residentialAreas.put(sylvan.getId(), sylvan);
+        residentialAreas.put(lincoln.getId(), lincoln);
     }
 
-    private static void printHelp() {
+    private static void printHelp(File asciiArt) {
         int separatorLength = 80;
+        try {
+            printAsciiArt(asciiArt);
+        } catch(IOException e) {
+            // Do not print IOException stack trace.
+        }
+        System.out.println("");
         System.out.println(getHeaderSeparator("INTRODUCTION", separatorLength));
         System.out.println("This SPIRE Automator takes runtime arguments to set its functional configurations.");
         System.out.println("Each section describes an automator and lists its needed runtime arguments.");
@@ -488,5 +510,16 @@ public class SpireAutomator {
             sb.append("-");
         }
         return sb.toString();
+    }
+
+    private static void printAsciiArt(File file) throws IOException {
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+        String line;
+        while((line = br.readLine()) != null) {
+            System.out.println(line);
+        }
+        br.close();
+        fr.close();
     }
 }
