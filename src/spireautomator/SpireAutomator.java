@@ -29,7 +29,6 @@ public class SpireAutomator {
         String username = null;
         String password = null;
         String term = null;
-        int numSearches = -1;
 
         // Process each command-line argument.
         for(String arg : args) {
@@ -53,7 +52,7 @@ public class SpireAutomator {
                     case "username":    username = value;                       break;
                     case "password":    password = value;                       break;
                     case "term":        term = value;                           break;
-                    case "searches":    numSearches = Integer.valueOf(value);   break;
+//                    case "searches":    numSearches = Integer.valueOf(value);   break;
                     default:            break;
                 }
             } else if(arg.trim().toLowerCase().equals("help")) {
@@ -148,19 +147,13 @@ public class SpireAutomator {
                                 break;
             case HOUSER:        Map<String, ResidentialArea> residentialAreas = new HashMap<>();
                                 setResidentialAreaConfig(residentialAreas);
-                                // Get the number of search configurations from the user if not provided.
-                                while(numSearches < 0) {
-                                    System.out.println("Number of search criteria configurations?");
-                                    numSearches = new Scanner(System.in).nextInt();
-                                }
-                                // Initialize an array of search configurations.
-                                RoomSearch[] searches = new RoomSearch[numSearches];
-                                for(int i = 0; i < searches.length; i++) {
-                                    searches[i] = new RoomSearch();
-                                }
+                                // Default to one search criteria configuration.
+                                // If user calls for more configurations, a larger array will be created & copied into.
+                                RoomSearch[] searches = new RoomSearch[1];
                                 // Configure only the first search configuration with runtime arguments.
                                 // Additional configurations need to be configured in runtime.
                                 // Term is relevant to several automators so it is retrieved earlier.
+                                searches[0] = new RoomSearch();
                                 searches[0].setStep1TermSelect(term);
                                 // Reprocess each command-line argument to find arguments for houser.
                                 for(String arg : args) {
@@ -171,6 +164,19 @@ public class SpireAutomator {
                                         String param = argSplit[0];
                                         String value = argSplit[1];
                                         switch(param.toLowerCase()) {
+                                            case "searches":    int numSearches = Integer.valueOf(value);
+                                                                // Only make more search criteria if this value is greater than current size.
+                                                                if(numSearches > searches.length) {
+                                                                    RoomSearch[] searchesTemp = new RoomSearch[numSearches];
+                                                                    // Initialize the new larger search criteria array with non-null empty objects.
+                                                                    for(int i = 0; i < searchesTemp.length; i++) {
+                                                                        searchesTemp[i] = new RoomSearch();
+                                                                    }
+                                                                    // Overwrite the first indicies of new array with contents of old one.
+                                                                    System.arraycopy(searches, 0, searchesTemp, 0, searches.length);
+                                                                    // Replace the old array with the new larger array.
+                                                                    searches = searchesTemp;
+                                                                }
                                             // Inside this switch statement it is okay to lowercase the input strings
                                             // because the input strings themselves are not passed to something important.
                                             case "s2radio":     switch(value.toLowerCase()) {
@@ -198,10 +204,10 @@ public class SpireAutomator {
                                             }   break;
                                             // Here the values are passed along to something case-sensitive
                                             // so the input strings cannot be lowercased.
-                                            case "process":     searches[0].setStep1ProcessSelect(value);  break;
-                                            case "s2select":    searches[0].setStep2Select(value); break;
-                                            case "s3select":    searches[0].setStep3Select(value); break;
-                                            case "s4select":    searches[0].setStep4Select(value); break;
+                                            case "process":     searches[0].setStep1ProcessSelect(value);   break;
+                                            case "s2select":    searches[0].setStep2Select(value);          break;
+                                            case "s3select":    searches[0].setStep3Select(value);          break;
+                                            case "s4select":    searches[0].setStep4Select(value);          break;
                                             default:            break;
                                         }
                                     }
@@ -422,34 +428,44 @@ public class SpireAutomator {
     }
 
     private static void printHelp() {
-        int separatorLength = 40;
-
-        System.out.println(getHeaderSeparator("GENERAL", 40));
-        System.out.println("browser=[chrome,firefox]");
-        System.out.println("automator=[enroller,houser]");
+        int separatorLength = 80;
+        System.out.println("This SPIRE Automator takes runtime arguments to set its functional configurations.");
+        System.out.println("Each header lists the runtime arguments relevant to that automator.");
+        System.out.println("Some arguments can understand only the values that are listed below.");
+        System.out.println("Arguments listed below that do not list predefined values may take any input.");
+        System.out.println("If an argument is given a value that is not listed below,");
+        System.out.println("\tthe program will treat that argument as if it had not been set at all.");
+        System.out.println("If an argument is not set, the automator will prompt the user for it if it is needed.");
+        System.out.println("The automator will not prompt the user for unnecessary arguments.");
+        System.out.println("It is recommended to wrap all parameter/value arguments in quotes to preserve spaces,");
+        System.out.println("\tespecially arguments without predefined values. Here is an example of a good command:");
+        System.out.println("\tjava spireautomator.SpireAutomator \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
+        System.out.println(getHeaderSeparator("GENERAL", separatorLength));
+        System.out.println("browser=[chrome, firefox]");
+        System.out.println("automator=[enroller, houser]");
         System.out.println("username");
         System.out.println("password");
         System.out.println("term");
-        System.out.println("searches");
-        System.out.println(getHeaderSeparator("ENROLLER", 40));//8
-        System.out.println(getHeaderSeparator("HOUSER", 40));//6
+        System.out.println(getHeaderSeparator("ENROLLER", separatorLength));
+        System.out.println(getHeaderSeparator("HOUSER", separatorLength));
+        System.out.println("searches=[>1]");
         System.out.println("process");
-        System.out.println("s2radio=[building,cluster,area,all]");
+        System.out.println("s2radio=[building, cluster, area, all]");
         System.out.println("s2select");
-        System.out.println("s3radio=[type,design,floor,option]");
+        System.out.println("s3radio=[type, design, floor, option]");
         System.out.println("s3select");
-        System.out.println("s4radio=none,room_open,suite_open,type,open_double,open_triple");
+        System.out.println("s4radio=[none, room_open, suite_open, type, open_double, open_triple]");
         System.out.println("s4select");
         System.exit(0);
     }
 
     private static String getHeaderSeparator(String header, int length) {
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < Math.floor(length-header.length()/2); i++) {
+        for(int i = 0; i < Math.floor((length-header.length())/2); i++) {
             sb.append("-");
         }
         sb.append(header.toUpperCase());
-        for(int i = 0; i < Math.ceil(length-header.length()/2); i++) {
+        for(int i = 0; i < Math.ceil((length-header.length())/2); i++) {
             sb.append("-");
         }
         return sb.toString();
