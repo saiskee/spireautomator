@@ -1,8 +1,6 @@
 package spireautomator;
 
 import autoenroller.*;
-import autohouser.Building;
-import autohouser.ResidentialArea;
 import autohouser.RoomSearch;
 import autohouser.SpireHousing;
 import org.openqa.selenium.By;
@@ -61,7 +59,7 @@ public class SpireAutomator {
                 }
             }
         } else {
-            System.out.println("Add \"help\" to your program arguments/parameters to learn how to use this program.");
+            System.out.println("Use the \"help\" program argument/parameter to learn how to use this program.");
             // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
 
@@ -151,16 +149,14 @@ public class SpireAutomator {
                                 SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
                                 spireEnrollment.run();
                                 break;
-            case HOUSER:        Map<String, ResidentialArea> residentialAreas = new HashMap<>();
-                                setResidentialAreaConfig(residentialAreas);
-                                // Default to one search criteria configuration.
+            case HOUSER:        // Default to one search criteria configuration.
                                 // If user calls for more configurations, a larger array will be created & copied into.
-                                RoomSearch[] searches = new RoomSearch[1];
+                                ArrayList<RoomSearch> searches = new ArrayList<>();
                                 // Configure only the first search configuration with runtime arguments.
                                 // Additional configurations need to be configured in runtime.
                                 // Term is relevant to several automators so it is retrieved earlier.
-                                searches[0] = new RoomSearch();
-                                searches[0].setStep1TermSelect(term);
+                                searches.add(new RoomSearch());
+                                searches.get(0).setStep1TermSelect(term);
                                 // Reprocess each command-line argument to find arguments for houser.
                                 for(String arg : args) {
                                     String[] argSplit = arg.split("=");
@@ -170,55 +166,49 @@ public class SpireAutomator {
                                         String param = argSplit[0];
                                         String value = argSplit[1];
                                         switch(param.toLowerCase()) {
-                                            case "searches":    int numSearches = Integer.valueOf(value);
+                                            case "searches":    // Subtract one because one RoomSearch already exists.
+                                                                int numSearches = Integer.valueOf(value)-1;
                                                                 // Only make more search criteria if this value is greater than current size.
-                                                                if(numSearches > searches.length) {
-                                                                    RoomSearch[] searchesTemp = new RoomSearch[numSearches];
-                                                                    // Initialize the new larger search criteria array with non-null empty objects.
-                                                                    for(int i = 0; i < searchesTemp.length; i++) {
-                                                                        searchesTemp[i] = new RoomSearch();
-                                                                    }
-                                                                    // Overwrite the first indicies of new array with contents of old one.
-                                                                    System.arraycopy(searches, 0, searchesTemp, 0, searches.length);
-                                                                    // Replace the old array with the new larger array.
-                                                                    searches = searchesTemp;
+                                                                while(numSearches > 0) {
+                                                                    searches.add(new RoomSearch());
+                                                                    numSearches--;
                                                                 }
                                             // Inside this switch statement it is okay to lowercase the input strings
                                             // because the input strings themselves are not passed to something important.
                                             case "s2radio":     switch(value.toLowerCase()) {
-                                                case "building":    searches[0].setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
-                                                case "cluster":     searches[0].setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
-                                                case "area":        searches[0].setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
-                                                case "all":         searches[0].setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
+                                                case "building":    searches.get(0).setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
+                                                case "cluster":     searches.get(0).setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
+                                                case "area":        searches.get(0).setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
+                                                case "all":         searches.get(0).setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
                                                 default:            break;
                                             }   break;
                                             case "s3radio":     switch(value.toLowerCase()) {
-                                                case "type":        searches[0].setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
-                                                case "design":      searches[0].setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
-                                                case "floor":       searches[0].setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
-                                                case "option":      searches[0].setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
+                                                case "type":        searches.get(0).setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
+                                                case "design":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
+                                                case "floor":       searches.get(0).setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
+                                                case "option":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
                                                 default:            break;
                                             }   break;
                                             case "s4radio":     switch(value.toLowerCase()) {
-                                                case "none":        searches[0].setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
-                                                case "room_open":   searches[0].setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
-                                                case "suite_open":  searches[0].setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
-                                                case "type":        searches[0].setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
-                                                case "open_double": searches[0].setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
-                                                case "open_triple": searches[0].setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
+                                                case "none":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
+                                                case "room_open":   searches.get(0).setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
+                                                case "suite_open":  searches.get(0).setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
+                                                case "type":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
+                                                case "open_double": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
+                                                case "open_triple": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
                                                 default:            break;
                                             }   break;
                                             // Here the values are passed along to something case-sensitive
                                             // so the input strings cannot be lowercased.
-                                            case "process":     searches[0].setStep1ProcessSelect(value);   break;
-                                            case "s2select":    searches[0].setStep2Select(value);          break;
-                                            case "s3select":    searches[0].setStep3Select(value);          break;
-                                            case "s4select":    searches[0].setStep4Select(value);          break;
+                                            case "process":     searches.get(0).setStep1ProcessSelect(value);   break;
+                                            case "s2select":    searches.get(0).setStep2Select(value);          break;
+                                            case "s3select":    searches.get(0).setStep3Select(value);          break;
+                                            case "s4select":    searches.get(0).setStep4Select(value);          break;
                                             default:            break;
                                         }
                                     }
                                 }
-                                SpireHousing spireHousing = new SpireHousing(driver, searches, residentialAreas);
+                                SpireHousing spireHousing = new SpireHousing(driver, searches, getResidentialAreaConfig());
                                 spireHousing.run();
                                 break;
             default:            break;
@@ -353,99 +343,74 @@ public class SpireAutomator {
     }
 
     /**
-     * Constructs the {@link ResidentialArea}s
-     * and {@link Building}s on the UMass campus.
-     * @param residentialAreas A Map of all of the residential areas on campus, containing all of the Buildings.
+     * Creates a Map that associates buildings
+     * with residential areas.
      */
-    private static void setResidentialAreaConfig(Map<String, ResidentialArea> residentialAreas){
-        ResidentialArea orchardHill = new ResidentialArea("Orchard Hill");
-        ResidentialArea central = new ResidentialArea("Central");
-        ResidentialArea northeast = new ResidentialArea("Northeast");
-        ResidentialArea southwest = new ResidentialArea("Southwest");
-        ResidentialArea honors = new ResidentialArea("Honors");
-        ResidentialArea north = new ResidentialArea("North");
-        ResidentialArea sylvan = new ResidentialArea("Sylvan");
-        ResidentialArea lincoln = new ResidentialArea("Lincoln");
-
-        orchardHill.put(new Building("Dickinson"));
-        orchardHill.put(new Building("Webster"));
-        orchardHill.put(new Building("Grayson"));
-        orchardHill.put(new Building("Field"));
-
-        central.put(new Building("Van Meter"));
-        central.put(new Building("Gorman"));
-        central.put(new Building("Wheeler"));
-        central.put(new Building("Butterfield"));
-        central.put(new Building("Greenough"));
-        central.put(new Building("Chadbourne"));
-        central.put(new Building("Baker"));
-        central.put(new Building("Brooks"));
-        central.put(new Building("Brett"));
-
-        northeast.put(new Building("Hamlin"));
-        northeast.put(new Building("Leach"));
-        northeast.put(new Building("Dwight"));
-        northeast.put(new Building("Knowlton"));
-        northeast.put(new Building("Crabtree"));
-        northeast.put(new Building("Mary Lyon"));
-        northeast.put(new Building("Johnson"));
-        northeast.put(new Building("Lewis"));
-        northeast.put(new Building("Thatcher"));
-
-        north.put(new Building("North A"));
-        north.put(new Building("North B"));
-        north.put(new Building("North C"));
-        north.put(new Building("North D"));
-
-        sylvan.put(new Building("Brown"));
-        sylvan.put(new Building("McNamara"));
-        sylvan.put(new Building("Cashin"));
-
-        honors.put(new Building("Oak"));
-        honors.put(new Building("Sycamore"));
-        honors.put(new Building("Birch"));
-        honors.put(new Building("Elm"));
-        honors.put(new Building("Maple"));
-        honors.put(new Building("Linden"));
-
-        southwest.put(new Building("Melville"));
-        southwest.put(new Building("Thoreau"));
-        southwest.put(new Building("Pierpont"));
-        southwest.put(new Building("Moore"));
-        southwest.put(new Building("James"));
-        southwest.put(new Building("Emerson"));
-        southwest.put(new Building("Kennedy"));
-        southwest.put(new Building("Cance"));
-        southwest.put(new Building("Coolidge"));
-        southwest.put(new Building("Crampton"));
-        southwest.put(new Building("John Adams"));
-        southwest.put(new Building("John Quincy Adams"));
-        southwest.put(new Building("MacKimmie"));
-        southwest.put(new Building("Patterson"));
-        southwest.put(new Building("Prince"));
-        southwest.put(new Building("Washington"));
-
-        lincoln.put(new Building("Lincoln 01"));
-        lincoln.put(new Building("Lincoln 02"));
-        lincoln.put(new Building("Lincoln 03"));
-        lincoln.put(new Building("Lincoln 04"));
-        lincoln.put(new Building("Lincoln 05"));
-        lincoln.put(new Building("Lincoln 06"));
-        lincoln.put(new Building("Lincoln 07"));
-        lincoln.put(new Building("Lincoln 08"));
-        lincoln.put(new Building("Lincoln 09"));
-        lincoln.put(new Building("Lincoln 10"));
-        lincoln.put(new Building("Lincoln 11"));
-
-
-        residentialAreas.put(orchardHill.getId(), orchardHill);
-        residentialAreas.put(central.getId(), central);
-        residentialAreas.put(northeast.getId(), northeast);
-        residentialAreas.put(southwest.getId(), southwest);
-        residentialAreas.put(honors.getId(), honors);
-        residentialAreas.put(north.getId(), north);
-        residentialAreas.put(sylvan.getId(), sylvan);
-        residentialAreas.put(lincoln.getId(), lincoln);
+    private static Map<String, String> getResidentialAreaConfig(){
+        Map<String, String> residentialAreas = new HashMap<>();
+        residentialAreas.put("Baker", "CE");
+        residentialAreas.put("Birch", "CH");
+        residentialAreas.put("Brett", "CE");
+        residentialAreas.put("Brooks", "CE");
+        residentialAreas.put("Brown", "SY");
+        residentialAreas.put("Butterfield", "CE");
+        residentialAreas.put("Cance", "SW");
+        residentialAreas.put("Cashin", "SY");
+        residentialAreas.put("Chadbourne", "CE");
+        residentialAreas.put("Coolidge", "SW");
+        residentialAreas.put("Crabtree", "NE");
+        residentialAreas.put("Crampton", "SW");
+        residentialAreas.put("Dickinson", "OH");
+        residentialAreas.put("Dwight", "NE");
+        residentialAreas.put("Elm", "CH");
+        residentialAreas.put("Emerson", "SW");
+        residentialAreas.put("Field", "OH");
+        residentialAreas.put("Gorman", "CE");
+        residentialAreas.put("Grayson", "OH");
+        residentialAreas.put("Greenough", "CE");
+        residentialAreas.put("Hamlin", "NE");
+        residentialAreas.put("James", "SW");
+        residentialAreas.put("John Adams", "SW");
+        residentialAreas.put("John Quincy Adams", "SW");
+        residentialAreas.put("Johnson", "NE");
+        residentialAreas.put("Kennedy", "SW");
+        residentialAreas.put("Knowlton", "NE");
+        residentialAreas.put("Leach", "NE");
+        residentialAreas.put("Lewis", "NE");
+        residentialAreas.put("Lincoln Building 01", "LN");
+        residentialAreas.put("Lincoln Building 02", "LN");
+        residentialAreas.put("Lincoln Building 03", "LN");
+        residentialAreas.put("Lincoln Building 04", "LN");
+        residentialAreas.put("Lincoln Building 05", "LN");
+        residentialAreas.put("Lincoln Building 06", "LN");
+        residentialAreas.put("Lincoln Building 07", "LN");
+        residentialAreas.put("Lincoln Building 08", "LN");
+        residentialAreas.put("Lincoln Building 09", "LN");
+        residentialAreas.put("Lincoln Building 10", "LN");
+        residentialAreas.put("Lincoln Building 11", "LN");
+        residentialAreas.put("Linden", "CH");
+        residentialAreas.put("MacKimmie", "SW");
+        residentialAreas.put("Maple", "CH");
+        residentialAreas.put("Mary Lyon", "NE");
+        residentialAreas.put("McNamara", "SY");
+        residentialAreas.put("Melville", "SW");
+        residentialAreas.put("Moore", "SW");
+        residentialAreas.put("North Hall A", "NO");
+        residentialAreas.put("North Hall B", "NO");
+        residentialAreas.put("North Hall C", "NO");
+        residentialAreas.put("North Hall D", "NO");
+        residentialAreas.put("Oak", "CH");
+        residentialAreas.put("Patterson", "SW");
+        residentialAreas.put("Pierpont", "SW");
+        residentialAreas.put("Prince", "SW");
+        residentialAreas.put("Sycamore", "CH");
+        residentialAreas.put("Thatcher", "NE");
+        residentialAreas.put("Thoreau", "SW");
+        residentialAreas.put("VanMeter", "CE");
+        residentialAreas.put("Washington", "SW");
+        residentialAreas.put("Webster", "OH");
+        residentialAreas.put("Wheeler", "CE");
+        return residentialAreas;
     }
 
     private static void printHelp(File asciiArt) {

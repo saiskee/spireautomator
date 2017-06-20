@@ -14,13 +14,13 @@ import java.util.*;
  */
 public class SpireHousing {
     private WebDriver driver;
-    private RoomSearch[] searches;
-    private Map<String, ResidentialArea> residentialAreas;
+    private ArrayList<RoomSearch> searches;
+    private Map<String, String> residentialAreas;
     private int waitInterval;
 
     public SpireHousing() {
         this.driver = null;
-        this.searches = new RoomSearch[1];
+        this.searches = new ArrayList<>();
         this.residentialAreas = new HashMap<>();
         this.waitInterval = 500;
     }
@@ -31,19 +31,19 @@ public class SpireHousing {
         this.residentialAreas = new HashMap<>();
     }
 
-    public SpireHousing(WebDriver driver, RoomSearch[] searches) {
+    public SpireHousing(WebDriver driver, ArrayList<RoomSearch> searches) {
         this();
         this.driver = driver;
         this.searches = searches;
     }
 
-    public SpireHousing(WebDriver driver, Map<String, ResidentialArea> residentialAreas) {
+    public SpireHousing(WebDriver driver, Map<String, String> residentialAreas) {
         this();
         this.driver = driver;
         this.residentialAreas = residentialAreas;
     }
 
-    public SpireHousing(WebDriver driver, RoomSearch[] searches, Map<String, ResidentialArea> residentialAreas) {
+    public SpireHousing(WebDriver driver, ArrayList<RoomSearch> searches, Map<String, String> residentialAreas) {
         this();
         this.driver = driver;
         this.searches = searches;
@@ -62,124 +62,117 @@ public class SpireHousing {
         UMass.waitForElement(driver, By.cssSelector(UMass.SEARCH_FOR_ROOM_SELECTOR)).click();
 
         System.out.println("Beginning automated refresh.");
-        int cur = 0;
         long previousTime = System.currentTimeMillis();
         while(true) {
-            // Reload current shopping cart page at least every 5 seconds.
-            // If it has been less than 5 seconds since the last refresh, wait an extra 5 seconds.
-            if ((System.currentTimeMillis() - previousTime) / 1000 < 5) {
-                UMass.sleep(5000);
-            }
+            for(RoomSearch curSearch : searches) {
+                // Enter the selected term. Prompt user once if needed.
+                Select s1TermSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S1_TERM_SELECT_SELECTOR)));
+                s1TermSelect.selectByVisibleText(s1GetTermSelectOption(curSearch, s1TermSelect));
+                // Enter the selected assignment process. Prompt user once if needed.
+                Select s1ProcessSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S1_PROCESS_SELECT_SELECTOR)));
+                s1ProcessSelect.selectByVisibleText(s1GetProcessSelectOption(curSearch, s1ProcessSelect));
+                // Since some radios prompt a dropdown selection and others don't, switch cases allow us to specify.
+                switch(s2GetRadioOption(curSearch)) {
+                    // All radios with associated selects work the same, just values are different. Radios without associated
+                    // selects work the same as each other too. Only the first case (step 2 radio, building) is commented.
+                    case BUILDING:  UMass.waitForElement(driver, By.cssSelector(UMass.S2_BUILDING_RADIO_SELECTOR)).click();
+                        // Wait a short time to allow the hidden element to appear after the click.
+                        UMass.sleep(waitInterval);
+                        // Gets the dropdown menu of buildings.
+                        Select s2BuildingSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S2_BUILDING_SELECT_SELECTOR)));
+                        // Gets input from user for which dropdown option they want, and select it.
+                        s2BuildingSelect.selectByVisibleText(s2GetSelectOption(curSearch, s2BuildingSelect));
+                        break;
+                    case CLUSTER:   UMass.waitForElement(driver, By.cssSelector(UMass.S2_CLUSTER_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s2ClusterSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S2_CLUSTER_SELECT_SELECTOR)));
+                        s2ClusterSelect.selectByVisibleText(s2GetSelectOption(curSearch, s2ClusterSelect));
+                        break;
+                    case AREA:      UMass.waitForElement(driver, By.cssSelector(UMass.S2_AREA_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s2AreaSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S2_AREA_SELECT_SELECTOR)));
+                        s2AreaSelect.selectByVisibleText(s2GetSelectOption(curSearch, s2AreaSelect));
+                        break;
+                    case ALL:       UMass.waitForElement(driver, By.cssSelector(UMass.S2_ALL_RADIO_SELECTOR)).click();
+                        break;
+                }
+                switch(s3GetRadioOption(curSearch)) {
+                    case TYPE:      UMass.waitForElement(driver, By.cssSelector(UMass.S3_TYPE_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s3TypeSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S3_TYPE_SELECT_SELECTOR)));
+                        s3TypeSelect.selectByVisibleText(s3GetSelectOption(curSearch, s3TypeSelect));
 
-            // Uncomment this line to show the number of seconds since the last refresh, on every refresh.
-            // System.out.println("Refreshing "+(System.currentTimeMillis()-previousTime)/1000+" seconds later...");
-            previousTime = System.currentTimeMillis();
+                        break;
+                    case DESIGN:    UMass.waitForElement(driver, By.cssSelector(UMass.S3_DESIGN_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s3DesignSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S3_DESIGN_SELECT_SELECTOR)));
+                        s3DesignSelect.selectByVisibleText(s3GetSelectOption(curSearch, s3DesignSelect));
+                        break;
+                    case FLOOR:     UMass.waitForElement(driver, By.cssSelector(UMass.S3_FLOOR_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s3FloorSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S3_FLOOR_SELECT_SELECTOR)));
+                        s3FloorSelect.selectByVisibleText(s3GetSelectOption(curSearch, s3FloorSelect));
+                        break;
+                    case OPTION:    UMass.waitForElement(driver, By.cssSelector(UMass.S3_OPTION_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s3OptionSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S3_OPTION_SELECT_SELECTOR)));
+                        s3OptionSelect.selectByVisibleText(s3GetSelectOption(curSearch, s3OptionSelect));
+                        break;
+                }
+                switch(s4GetRadioOption(curSearch)) {
+                    case NONE:          UMass.waitForElement(driver, By.cssSelector(UMass.S4_NONE_RADIO_SELECTOR)).click();
+                        break;
+                    case ROOM_OPEN:     UMass.waitForElement(driver, By.cssSelector(UMass.S4_ROOM_OPEN_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s4RoomOpenSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S4_ROOM_OPEN_SELECT_SELECTOR)));
+                        s4RoomOpenSelect.selectByVisibleText(s4GetSelectOption(curSearch, s4RoomOpenSelect));
+                        break;
+                    case SUITE_OPEN:    UMass.waitForElement(driver, By.cssSelector(UMass.S4_SUITE_OPEN_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s4SuiteOpenSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S4_SUITE_OPEN_SELECT_SELECTOR)));
+                        s4SuiteOpenSelect.selectByVisibleText(s4GetSelectOption(curSearch, s4SuiteOpenSelect));
+                        break;
+                    case TYPE:          UMass.waitForElement(driver, By.cssSelector(UMass.S4_TYPE_RADIO_SELECTOR)).click();
+                        UMass.sleep(waitInterval);
+                        Select s4TypeSelect = new Select(UMass.waitForElement(driver,
+                                By.cssSelector(UMass.S4_TYPE_SELECT_SELECTOR)));
+                        s4TypeSelect.selectByVisibleText(s4GetSelectOption(curSearch, s4TypeSelect));
+                        break;
+                    case OPEN_DOUBLE:   UMass.waitForElement(driver, By.cssSelector(UMass.S4_OPEN_DOUBLE_RADIO_SELECTOR)).click();
+                        break;
+                    case OPEN_TRIPLE:   UMass.waitForElement(driver, By.cssSelector(UMass.S4_OPEN_TRIPLE_RADIO_SELECTOR)).click();
+                        break;
+                }
+                // Wait, an interval, then click the "Search Now" button after finishing entering search criteria.
+                UMass.sleep(waitInterval);
+                driver.findElement(By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR)).click();
+                //TODO: PARSE ROOMS INTO RESIDENTIAL AREA STRUCTURE
+                curSearch.setResults(parseRooms());
+                //TODO: CLICK "NEW SEARCH" BUTTON ON SEARCH RESULTS
 
-            // Enter the selected term. Prompt user once if needed.
-            Select s1TermSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S1_TERM_SELECT_SELECTOR)));
-            s1TermSelect.selectByVisibleText(s1GetTermSelectOption(searches[cur], s1TermSelect));
-            // Enter the selected assignment process. Prompt user once if needed.
-            Select s1ProcessSelect = new Select(UMass.waitForElement(driver, By.cssSelector(UMass.S1_PROCESS_SELECT_SELECTOR)));
-            s1ProcessSelect.selectByVisibleText(s1GetProcessSelectOption(searches[cur], s1ProcessSelect));
-
-            // Since some radios prompt a dropdown selection and others don't, switch cases allow us to specify.
-            switch(s2GetRadioOption(searches[cur])) {
-                // All radios with associated selects work the same, just values are different. Radios without associated
-                // selects work the same as each other too. Only the first case (step 2 radio, building) is commented.
-                case BUILDING:  UMass.waitForElement(driver, By.cssSelector(UMass.S2_BUILDING_RADIO_SELECTOR)).click();
-                                // Wait a short time to allow the hidden element to appear after the click.
-                                UMass.sleep(waitInterval);
-                                // Gets the dropdown menu of buildings.
-                                Select s2BuildingSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S2_BUILDING_SELECT_SELECTOR)));
-                                // Gets input from user for which dropdown option they want, and select it.
-                                s2BuildingSelect.selectByVisibleText(s2GetSelectOption(searches[cur], s2BuildingSelect));
-                                break;
-                case CLUSTER:   UMass.waitForElement(driver, By.cssSelector(UMass.S2_CLUSTER_RADIO_SELECTOR)).click();
-                                UMass.sleep(waitInterval);
-                                Select s2ClusterSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S2_CLUSTER_SELECT_SELECTOR)));
-                                s2ClusterSelect.selectByVisibleText(s2GetSelectOption(searches[cur], s2ClusterSelect));
-                                break;
-                case AREA:      UMass.waitForElement(driver, By.cssSelector(UMass.S2_AREA_RADIO_SELECTOR)).click();
-                                UMass.sleep(waitInterval);
-                                Select s2AreaSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S2_AREA_SELECT_SELECTOR)));
-                                s2AreaSelect.selectByVisibleText(s2GetSelectOption(searches[cur], s2AreaSelect));
-                                break;
-                case ALL:       UMass.waitForElement(driver, By.cssSelector(UMass.S2_ALL_RADIO_SELECTOR)).click();
-                                break;
-            }
-            switch(s3GetRadioOption(searches[cur])) {
-                case TYPE:      UMass.waitForElement(driver, By.cssSelector(UMass.S3_TYPE_RADIO_SELECTOR)).click();
-                                UMass.sleep(waitInterval);
-                                Select s3TypeSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S3_TYPE_SELECT_SELECTOR)));
-                                s3TypeSelect.selectByVisibleText(s3GetSelectOption(searches[cur], s3TypeSelect));
-
-                                break;
-                case DESIGN:    UMass.waitForElement(driver, By.cssSelector(UMass.S3_DESIGN_RADIO_SELECTOR)).click();
-                                UMass.sleep(waitInterval);
-                                Select s3DesignSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S3_DESIGN_SELECT_SELECTOR)));
-                                s3DesignSelect.selectByVisibleText(s3GetSelectOption(searches[cur], s3DesignSelect));
-                                break;
-                case FLOOR:     UMass.waitForElement(driver, By.cssSelector(UMass.S3_FLOOR_RADIO_SELECTOR)).click();
-                                UMass.sleep(waitInterval);
-                                Select s3FloorSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S3_FLOOR_SELECT_SELECTOR)));
-                                s3FloorSelect.selectByVisibleText(s3GetSelectOption(searches[cur], s3FloorSelect));
-                                break;
-                case OPTION:    UMass.waitForElement(driver, By.cssSelector(UMass.S3_OPTION_RADIO_SELECTOR)).click();
-                                UMass.sleep(waitInterval);
-                                Select s3OptionSelect = new Select(UMass.waitForElement(driver,
-                                        By.cssSelector(UMass.S3_OPTION_SELECT_SELECTOR)));
-                                s3OptionSelect.selectByVisibleText(s3GetSelectOption(searches[cur], s3OptionSelect));
-                                break;
-            }
-            switch(s4GetRadioOption(searches[cur])) {
-                case NONE:          UMass.waitForElement(driver, By.cssSelector(UMass.S4_NONE_RADIO_SELECTOR)).click();
-                                    break;
-                case ROOM_OPEN:     UMass.waitForElement(driver, By.cssSelector(UMass.S4_ROOM_OPEN_RADIO_SELECTOR)).click();
-                                    UMass.sleep(waitInterval);
-                                    Select s4RoomOpenSelect = new Select(UMass.waitForElement(driver,
-                                            By.cssSelector(UMass.S4_ROOM_OPEN_SELECT_SELECTOR)));
-                                    s4RoomOpenSelect.selectByVisibleText(s4GetSelectOption(searches[cur], s4RoomOpenSelect));
-                                    break;
-                case SUITE_OPEN:    UMass.waitForElement(driver, By.cssSelector(UMass.S4_SUITE_OPEN_RADIO_SELECTOR)).click();
-                                    UMass.sleep(waitInterval);
-                                    Select s4SuiteOpenSelect = new Select(UMass.waitForElement(driver,
-                                            By.cssSelector(UMass.S4_SUITE_OPEN_SELECT_SELECTOR)));
-                                    s4SuiteOpenSelect.selectByVisibleText(s4GetSelectOption(searches[cur], s4SuiteOpenSelect));
-                                    break;
-                case TYPE:          UMass.waitForElement(driver, By.cssSelector(UMass.S4_TYPE_RADIO_SELECTOR)).click();
-                                    UMass.sleep(waitInterval);
-                                    Select s4TypeSelect = new Select(UMass.waitForElement(driver,
-                                            By.cssSelector(UMass.S4_TYPE_SELECT_SELECTOR)));
-                                    s4TypeSelect.selectByVisibleText(s4GetSelectOption(searches[cur], s4TypeSelect));
-                                    break;
-                case OPEN_DOUBLE:   UMass.waitForElement(driver, By.cssSelector(UMass.S4_OPEN_DOUBLE_RADIO_SELECTOR)).click();
-                                    break;
-                case OPEN_TRIPLE:   UMass.waitForElement(driver, By.cssSelector(UMass.S4_OPEN_TRIPLE_RADIO_SELECTOR)).click();
-                                    break;
-            }
-            // Wait, an interval, then click the "Search Now" button after finishing entering search criteria.
-            UMass.sleep(waitInterval);
-            driver.findElement(By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR)).click();
-            //TODO: PARSE ROOMS INTO RESIDENTIAL AREA STRUCTURE
-            parseRooms();
-            //TODO: CLICK "NEW SEARCH" BUTTON ON SEARCH RESULTS
-            // The program repeatedly loops through all of the searches.
-            if(cur >= searches.length-1) {
-                cur = 0;
-            } else {
-                cur++;
+                // Reload current shopping cart page at least every 5 seconds.
+                // If it has been less than 5 seconds since the last refresh, wait an extra 5 seconds.
+                if ((System.currentTimeMillis() - previousTime) / 1000 < 5) {
+                    UMass.sleep(5000);
+                }
+                // Uncomment this line to show the number of seconds since the last refresh, on every refresh.
+                // System.out.println("Refreshing "+(System.currentTimeMillis()-previousTime)/1000+" seconds later...");
+                previousTime = System.currentTimeMillis();
             }
         }
     }
 
-    private Map<String, Room> parseRooms() {
-        Map<String, Room> rooms = new HashMap<>();
+    private ArrayList<String> parseRooms() {
+        ArrayList<String> rooms = new ArrayList<>();
         // Gets the size of the rooms search results table and iterates over each row.
         // Skips the first row; it's just header labels.
         for(int row = 1; row < UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_RESULTS_SELECTOR)).findElements(By.tagName("tr")).size(); row++) {
@@ -187,9 +180,10 @@ public class SpireHousing {
             String number = UMass.findElementRoomsResults(driver, row, 2).getText();
             String design = UMass.findElementRoomsResults(driver, row, 6).getText();
             String type =  UMass.findElementRoomsResults(driver, row, 7).getText();
-            //TODO: Construct rooms.
-//            System.out.println("building="+building+" number="+number+" design="+design+" type="+type);
-            Room room = new Room(residentialAreas, building, number, design, type);
+            String area = residentialAreas.get(building);
+            String roomId = area+"-"+building+"-"+number+"-"+design+"-"+type;
+            rooms.add(roomId);
+            System.out.println(roomId);
         }
         return rooms;
     }

@@ -1,5 +1,7 @@
 package autohouser;
 
+import java.util.ArrayList;
+
 public class RoomSearch {
     public enum Step2Radio {
         BUILDING,
@@ -30,6 +32,7 @@ public class RoomSearch {
     private String step2Select;
     private String step3Select;
     private String step4Select;
+    private ArrayList<String> results;
 
     public RoomSearch() {
         this.step2Radio = null;
@@ -40,6 +43,7 @@ public class RoomSearch {
         this.step2Select = "";
         this.step3Select = "";
         this.step4Select = "";
+        results = new ArrayList<>();
     }
 
     public Step2Radio getStep2Radio() {
@@ -74,6 +78,10 @@ public class RoomSearch {
         return step4Select;
     }
 
+    public ArrayList<String> getResults() {
+        return results;
+    }
+
     public void setStep2Radio(RoomSearch.Step2Radio step2Radio) {
         this.step2Radio = step2Radio;
     }
@@ -104,5 +112,9 @@ public class RoomSearch {
 
     public void setStep4Select(String step4Select) {
         this.step4Select = step4Select;
+    }
+
+    public void setResults(ArrayList<String> results) {
+        this.results = results;
     }
 }
