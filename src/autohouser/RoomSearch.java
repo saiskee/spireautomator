@@ -32,7 +32,7 @@ public class RoomSearch {
     private String step2Select;
     private String step3Select;
     private String step4Select;
-    private ArrayList<String> results;
+    private ArrayList<Room> results;
 
     public RoomSearch() {
         this.step2Radio = null;
@@ -43,7 +43,7 @@ public class RoomSearch {
         this.step2Select = "";
         this.step3Select = "";
         this.step4Select = "";
-        results = new ArrayList<>();
+        results = new ArrayList<Room>();
     }
 
     public Step2Radio getStep2Radio() {
@@ -78,7 +78,7 @@ public class RoomSearch {
         return step4Select;
     }
 
-    public ArrayList<String> getResults() {
+    public ArrayList<Room> getResults() {
         return results;
     }
 
@@ -114,7 +114,7 @@ public class RoomSearch {
         this.step4Select = step4Select;
     }
 
-    public void setResults(ArrayList<String> results) {
+    public void setResults(ArrayList<Room> results) {
         this.results = results;
     }
 }

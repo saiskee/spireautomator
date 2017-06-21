@@ -8,22 +8,92 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The constants that identify {@link org.openqa.selenium.WebElement}s
  * throughout SPIRE.
  */
 public class UMass {
-    public static SimpleDateFormat dateTimeFormat = new SimpleDateFormat("MM/dd/YYYY h:mmaa");
-    public static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/YYYY");
-    public static SimpleDateFormat timeFormat = new SimpleDateFormat("h:mmaa");
+    // Building -> Residential Area mapping
+    public static String getResidentialArea(String building) {
+        String result = "";
+        switch(building) {
+            case "Baker":	            result = "CE";		break;
+            case "Birch":	            result = "CH";		break;
+            case "Brett":	            result = "CE";		break;
+            case "Brooks":	            result = "CE";		break;
+            case "Brown":	            result = "SY";		break;
+            case "Butterfield":	        result = "CE";		break;
+            case "Cance":	            result = "SW";		break;
+            case "Cashin":	            result = "SY";		break;
+            case "Chadbourne":	        result = "CE";		break;
+            case "Coolidge":	        result = "SW";		break;
+            case "Crabtree":	        result = "NE";		break;
+            case "Crampton":	        result = "SW";		break;
+            case "Dickinson":	        result = "OH";		break;
+            case "Dwight":	            result = "NE";		break;
+            case "Elm":	                result = "CH";		break;
+            case "Emerson":	            result = "SW";		break;
+            case "Field":	            result = "OH";		break;
+            case "Gorman":	            result = "CE";		break;
+            case "Grayson":	            result = "OH";		break;
+            case "Greenough":	        result = "CE";		break;
+            case "Hamlin":	            result = "NE";		break;
+            case "James":	            result = "SW";		break;
+            case "John Adams":	        result = "SW";		break;
+            case "John Quincy Adams":	result = "SW";		break;
+            case "Johnson":	            result = "NE";		break;
+            case "Kennedy":	            result = "SW";		break;
+            case "Knowlton":	        result = "NE";		break;
+            case "Leach":	            result = "NE";		break;
+            case "Lewis":	            result = "NE";		break;
+            case "Lincoln Building 01":	result = "LN";		break;
+            case "Lincoln Building 02":	result = "LN";		break;
+            case "Lincoln Building 03":	result = "LN";		break;
+            case "Lincoln Building 04":	result = "LN";		break;
+            case "Lincoln Building 05":	result = "LN";		break;
+            case "Lincoln Building 06":	result = "LN";		break;
+            case "Lincoln Building 07":	result = "LN";		break;
+            case "Lincoln Building 08":	result = "LN";		break;
+            case "Lincoln Building 09":	result = "LN";		break;
+            case "Lincoln Building 10":	result = "LN";		break;
+            case "Lincoln Building 11":	result = "LN";		break;
+            case "Linden":	            result = "CH";		break;
+            case "MacKimmie":	        result = "SW";		break;
+            case "Maple":	            result = "CH";		break;
+            case "Mary Lyon":	        result = "NE";		break;
+            case "McNamara":	        result = "SY";		break;
+            case "Melville":	        result = "SW";		break;
+            case "Moore":	            result = "SW";		break;
+            case "North Hall A":	    result = "NO";		break;
+            case "North Hall B":	    result = "NO";		break;
+            case "North Hall C":	    result = "NO";		break;
+            case "North Hall D":	    result = "NO";		break;
+            case "Oak":	                result = "CH";		break;
+            case "Patterson":	        result = "SW";		break;
+            case "Pierpont":	        result = "SW";		break;
+            case "Prince":	            result = "SW";		break;
+            case "Sycamore":	        result = "CH";		break;
+            case "Thatcher":	        result = "NE";		break;
+            case "Thoreau":	            result = "SW";		break;
+            case "VanMeter":	        result = "CE";		break;
+            case "Washington":	        result = "SW";	    break;
+            case "Webster":	            result = "OH";	    break;
+            case "Wheeler":             result = "CE";      break;
+            default:                                        break;
+        }
+        return result;
+    }
 
     // General
     public static final int TRUE = 1;
     public static final int FALSE = 0;
     public static final int NOT_FOUND = -1;
+    public static final int WAIT_INTERVAL = 500;
+    public static final int LOAD_INTERVAL = 5000;
     public static final String SEPARATOR = "-";
 
     public static final String CHECKBOX_CLASS = "PSCHECKBOX";
@@ -116,6 +186,19 @@ public class UMass {
 
     // Room Search Results
     public static final String ROOMS_RESULTS_SELECTOR = "#UMH_RM_SRC_RSLTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
+    public static final String ROOMS_NEW_SEARCH_SELECTOR = "#UM_H_DRV_RSRCSL_UMH_NEW_SRCH_PB";
+
+    // Room Assignment Step 1
+    public static final String ASSIGN_SECTION_1_SELECTOR = "#trUM_H_DRVD_RGRP\\24 0_row1 > td:nth-child(1)";
+    public static final String ASSIGN_SECTION_2_SELECTOR = "#trUM_H_GRMBR_SRCH\\24 0_row1 > td:nth-child(1)";
+    public static final String ASSIGN_CHOOSE_SELECTOR = "#UM_H_DRV_SSASSN_UMH_PRE_ASSN_PB";
+
+    // Room Assignment Step 2
+    public static final String CONFIRM_SECTION_1_SELECTOR = "#trUM_H_DRVD_RGRP\\24 0_row1 > td:nth-child(1)";
+    public static final String CONFIRM_SAVE_SELECTOR = "#UM_H_DRV_SSASSN_UMH_ASSN_PB";
+
+    // Room Assignment Step 3
+    public static final String COMPLETE_RETURN_SELECTOR = "#UM_H_DRV_SSASSN_CANCEL";
 
     // Returns elements of the select term table on the select term page.
     public static WebElement findElementTermTable(WebDriver driver, int row, int col) {

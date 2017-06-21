@@ -129,7 +129,7 @@ public class SpireAutomator {
         // and then loads it into the driver as the main webpage.
         driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
         // Wait in case there is an error popup (seen on Firefox, not Chrome).
-        UMass.sleep(500);
+        UMass.sleep(UMass.WAIT_INTERVAL);
 
         // If no preferred automator was provided, prompt for one.
         while(automator == null) {
@@ -149,7 +149,10 @@ public class SpireAutomator {
                                 SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
                                 spireEnrollment.run();
                                 break;
-            case HOUSER:        // Default to one search criteria configuration.
+            case HOUSER:        // Used to indicate if the automator should quit after making one housing change,
+                                // or if it should keep searching for a better room forever (until quit).
+                                boolean searchForever = false;
+                                // Default to one search criteria configuration.
                                 // If user calls for more configurations, a larger array will be created & copied into.
                                 ArrayList<RoomSearch> searches = new ArrayList<>();
                                 // Configure only the first search configuration with runtime arguments.
@@ -173,6 +176,11 @@ public class SpireAutomator {
                                                                     searches.add(new RoomSearch());
                                                                     numSearches--;
                                                                 }
+                                            case "forever":     switch(value.toLowerCase()) {
+                                                case "true":        searchForever = true;   break;
+                                                case "false":       searchForever = false;  break;
+                                                default:            break;
+                                            }   break;
                                             // Inside this switch statement it is okay to lowercase the input strings
                                             // because the input strings themselves are not passed to something important.
                                             case "s2radio":     switch(value.toLowerCase()) {
@@ -208,7 +216,7 @@ public class SpireAutomator {
                                         }
                                     }
                                 }
-                                SpireHousing spireHousing = new SpireHousing(driver, searches, getResidentialAreaConfig());
+                                SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
                                 spireHousing.run();
                                 break;
             default:            break;
@@ -342,77 +350,6 @@ public class SpireAutomator {
         // End actions
     }
 
-    /**
-     * Creates a Map that associates buildings
-     * with residential areas.
-     */
-    private static Map<String, String> getResidentialAreaConfig(){
-        Map<String, String> residentialAreas = new HashMap<>();
-        residentialAreas.put("Baker", "CE");
-        residentialAreas.put("Birch", "CH");
-        residentialAreas.put("Brett", "CE");
-        residentialAreas.put("Brooks", "CE");
-        residentialAreas.put("Brown", "SY");
-        residentialAreas.put("Butterfield", "CE");
-        residentialAreas.put("Cance", "SW");
-        residentialAreas.put("Cashin", "SY");
-        residentialAreas.put("Chadbourne", "CE");
-        residentialAreas.put("Coolidge", "SW");
-        residentialAreas.put("Crabtree", "NE");
-        residentialAreas.put("Crampton", "SW");
-        residentialAreas.put("Dickinson", "OH");
-        residentialAreas.put("Dwight", "NE");
-        residentialAreas.put("Elm", "CH");
-        residentialAreas.put("Emerson", "SW");
-        residentialAreas.put("Field", "OH");
-        residentialAreas.put("Gorman", "CE");
-        residentialAreas.put("Grayson", "OH");
-        residentialAreas.put("Greenough", "CE");
-        residentialAreas.put("Hamlin", "NE");
-        residentialAreas.put("James", "SW");
-        residentialAreas.put("John Adams", "SW");
-        residentialAreas.put("John Quincy Adams", "SW");
-        residentialAreas.put("Johnson", "NE");
-        residentialAreas.put("Kennedy", "SW");
-        residentialAreas.put("Knowlton", "NE");
-        residentialAreas.put("Leach", "NE");
-        residentialAreas.put("Lewis", "NE");
-        residentialAreas.put("Lincoln Building 01", "LN");
-        residentialAreas.put("Lincoln Building 02", "LN");
-        residentialAreas.put("Lincoln Building 03", "LN");
-        residentialAreas.put("Lincoln Building 04", "LN");
-        residentialAreas.put("Lincoln Building 05", "LN");
-        residentialAreas.put("Lincoln Building 06", "LN");
-        residentialAreas.put("Lincoln Building 07", "LN");
-        residentialAreas.put("Lincoln Building 08", "LN");
-        residentialAreas.put("Lincoln Building 09", "LN");
-        residentialAreas.put("Lincoln Building 10", "LN");
-        residentialAreas.put("Lincoln Building 11", "LN");
-        residentialAreas.put("Linden", "CH");
-        residentialAreas.put("MacKimmie", "SW");
-        residentialAreas.put("Maple", "CH");
-        residentialAreas.put("Mary Lyon", "NE");
-        residentialAreas.put("McNamara", "SY");
-        residentialAreas.put("Melville", "SW");
-        residentialAreas.put("Moore", "SW");
-        residentialAreas.put("North Hall A", "NO");
-        residentialAreas.put("North Hall B", "NO");
-        residentialAreas.put("North Hall C", "NO");
-        residentialAreas.put("North Hall D", "NO");
-        residentialAreas.put("Oak", "CH");
-        residentialAreas.put("Patterson", "SW");
-        residentialAreas.put("Pierpont", "SW");
-        residentialAreas.put("Prince", "SW");
-        residentialAreas.put("Sycamore", "CH");
-        residentialAreas.put("Thatcher", "NE");
-        residentialAreas.put("Thoreau", "SW");
-        residentialAreas.put("VanMeter", "CE");
-        residentialAreas.put("Washington", "SW");
-        residentialAreas.put("Webster", "OH");
-        residentialAreas.put("Wheeler", "CE");
-        return residentialAreas;
-    }
-
     private static void printHelp(File asciiArt) {
         int separatorLength = 80;
         try {
@@ -455,6 +392,7 @@ public class SpireAutomator {
         System.out.println("The automator will prompt the user for input if a value is needed but not set.");
         System.out.println("The following arguments are used by this automator:");
         System.out.println("\tsearches=[>1]");
+        System.out.println("\tforever=[true,false]");
         System.out.println("\tprocess");
         System.out.println("\ts2radio=[building, cluster, area, all]");
         System.out.println("\ts2select");
