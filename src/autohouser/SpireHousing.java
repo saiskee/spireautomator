@@ -99,6 +99,8 @@ public class SpireHousing {
         UMass.waitForElement(driver, By.cssSelector(UMass.ASSIGN_SECTION_2_SELECTOR)).click();
         // Click the Choose button to go to the next page.
         UMass.waitForElement(driver, By.cssSelector(UMass.ASSIGN_CHOOSE_SELECTOR)).click();
+        // Elements on first page have same CSS selectors as elements on second page. Need to wait for page change.
+        UMass.sleep(UMass.WAIT_INTERVAL);
         // Select first student in Section I. Students to Assign
         UMass.waitForElement(driver, By.cssSelector(UMass.CONFIRM_SECTION_1_SELECTOR)).click();
         // Click the Save button to go to the next page.
