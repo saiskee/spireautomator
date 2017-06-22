@@ -63,6 +63,8 @@ public class SpireHousing {
                 // Wait an interval, then click the "Search Now" button after finishing entering search criteria.
                 UMass.sleep(UMass.WAIT_INTERVAL);
                 driver.findElement(By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR)).click();
+                // Wait an interval to allow the results to load, then begin parsing them.
+                UMass.sleep(UMass.WAIT_INTERVAL);
                 // Parse the results and save them to the current search configuration.
                 curSearch.setResults(parseRooms());
                 //TODO: How to select which room to assign, if multiple?

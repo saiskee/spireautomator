@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/autoenroller-fork.iml" filepath="$PROJECT_DIR$/autoenroller-fork.iml" />
+      <module fileurl="file://$PROJECT_DIR$/spireautomator.iml" filepath="$PROJECT_DIR$/spireautomator.iml" />
     </modules>
   </component>
 </project>
