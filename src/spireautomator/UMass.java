@@ -94,7 +94,8 @@ public class UMass {
     public static final int NOT_FOUND = -1;
     public static final int WAIT_INTERVAL = 500;
     public static final int LOAD_INTERVAL = 5000;
-    public static final String SEPARATOR = "-";
+    public static int TIMEOUT_INTERVAL = 10;
+
 
     public static final String CHECKBOX_CLASS = "PSCHECKBOX";
     public static final String RADIO_BUTTON_CLASS = "PSRADIOBUTTON";
@@ -110,7 +111,7 @@ public class UMass {
     public static final String SECTION_TITLE_SELECTOR = "#DERIVED_REGFRM1_TITLE1";
 
     // SPIRE Logon
-    public static final String LOGIN_URL = "https://spire.umass.edu/";
+    public static String SPIRE_HOME_URL = "https://spire.umass.edu/";
     public static final String USERNAME_ID = "userid";
     public static final String PASSWORD_ID = "pwd";
     public static final String LOGIN_BUTTON_SELECTOR = "#login > p:nth-child(5) > input[type=\"submit\"]";
@@ -152,7 +153,6 @@ public class UMass {
     public static final String EDIT_CONFIRM_STEP_1_SELECTOR = "#DERIVED_REGFRM1_LINK_UPDATE_ENRL";
 
     // Room Selection Home
-    public static final String HOUSING_APPTS_SELECTOR = "#HS_APPOINTMENTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
     public static final String SEARCH_FOR_ROOM_SELECTOR = "#UM_H_DRV_RS_HOM_UMH_RMSRCH_LNK";
 
     // Room Search Criteria
@@ -185,7 +185,7 @@ public class UMass {
     public static final String S5_SEARCH_NOW_SELECTOR = "#UM_H_DRV_RMSRCH_SEARCH_PB";
 
     // Room Search Results
-    public static final String ROOMS_RESULTS_SELECTOR = "#UMH_RM_SRC_RSLTS\\24 scroll\\24 0 > tbody > tr:nth-child(2) > td > table";
+    public static final String ROOMS_RESULTS_SELECTOR = "#UMH_RM_SRC_RSLTS\\24 scroll\\24 0";
     public static final String ROOMS_NEW_SEARCH_SELECTOR = "#UM_H_DRV_RSRCSL_UMH_NEW_SRCH_PB";
 
     // Room Assignment Step 1
@@ -283,11 +283,7 @@ public class UMass {
      * @return          The {@link WebElement} once it has been found.
      */
     public static WebElement waitForElement(WebDriver driver, By by) {
-        // This may be a good place to check if SPIRE asks to select a semester.
-        // Debatable as to whether this is too low-level and should be handled
-        // situationally rather than for every Wait instance.
-        // When they happen, semester selections come up for very many actions.
-        return (new WebDriverWait(driver, 10, 200)).until(ExpectedConditions.presenceOfElementLocated(by));
+        return (new WebDriverWait(driver, TIMEOUT_INTERVAL, WAIT_INTERVAL)).until(ExpectedConditions.presenceOfElementLocated(by));
     }
 
     /**
@@ -299,7 +295,7 @@ public class UMass {
      * @return                  The {@link WebElement} once it has been found.
      */
     public static WebElement waitForElement(WebDriver driver, int timeoutSeconds, By by) {
-        return (new WebDriverWait(driver, timeoutSeconds, 200)).until(ExpectedConditions.presenceOfElementLocated(by));
+        return (new WebDriverWait(driver, timeoutSeconds, WAIT_INTERVAL)).until(ExpectedConditions.presenceOfElementLocated(by));
     }
 
     public static boolean isElementFound(WebDriver driver, int timeoutSeconds, By by) {

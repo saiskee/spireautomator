@@ -60,20 +60,19 @@ public class SpireHousing {
             for(RoomSearch curSearch : searches) {
                 // Enter the current search criteria into the DOM.
                 enterSearchCriteria(driver, curSearch);
-                // Wait, an interval, then click the "Search Now" button after finishing entering search criteria.
+                // Wait an interval, then click the "Search Now" button after finishing entering search criteria.
                 UMass.sleep(UMass.WAIT_INTERVAL);
                 driver.findElement(By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR)).click();
                 // Parse the results and save them to the current search configuration.
                 curSearch.setResults(parseRooms());
                 //TODO: How to select which room to assign, if multiple?
-                if(true) {
+                if(false) {
                     assignRoom(driver, curSearch.getResults().get(0));
                     changed = true;
                 } else {
                     // Click "New Search" button on results page to return to search page.
                     UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_NEW_SEARCH_SELECTOR)).click();
                 }
-                // Reload current rom search page at least every load interval.
                 // If it has been less time than the load interval since the last refresh, wait an extra load interval.
                 if ((System.currentTimeMillis() - previousTime) < UMass.LOAD_INTERVAL) {
                     UMass.sleep(UMass.LOAD_INTERVAL);
@@ -211,8 +210,8 @@ public class SpireHousing {
     private ArrayList<Room> parseRooms() {
         ArrayList<Room> rooms = new ArrayList<>();
         // Gets the size of the rooms search results table and iterates over each row.
-        // Skips the first row; it's just header labels.
-        for(int row = 1; row < UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_RESULTS_SELECTOR)).findElements(By.tagName("tr")).size(); row++) {
+        // Skips the first row; it's just header labels, -3 due to non-room rows.
+        for(int row = 1; row < UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_RESULTS_SELECTOR)).findElements(By.tagName("tr")).size()-3; row++) {
             String building =   UMass.findElementRoomsResults(driver, row, 1).getText();
             String number =     UMass.findElementRoomsResults(driver, row, 2).getText();
             String design =     UMass.findElementRoomsResults(driver, row, 6).getText();

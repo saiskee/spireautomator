@@ -32,7 +32,7 @@ public class SpireAutomator {
         if(args.length > 0) {
             // Process each command-line argument.
             for(String arg : args) {
-                String[] argSplit = arg.split("=");
+                String[] argSplit = arg.split("=", 2);
                 // Only parse the argument if it is splittable, such as "param=value"
                 if(argSplit.length > 1) {
                     // Do not alter the input strings, fields may need to be exact (ex. password).
@@ -49,6 +49,17 @@ public class SpireAutomator {
                             case "houser":      automator = Automator.HOUSER;   break;
                             default:            break;
                         }   break;
+                        case "timeout":     try {
+                            int timeout = Integer.valueOf(value);
+                            if(timeout > 0) {
+                                UMass.TIMEOUT_INTERVAL = timeout;
+                            } else {
+                                System.out.println("Timeout input may not be negative. Ignoring.");
+                            }
+                        } catch(NumberFormatException e) {
+                            System.out.println("Timeout input must be a number. Ignoring.");
+                        }   break;
+                        case "url":         UMass.SPIRE_HOME_URL = value;           break;
                         case "username":    username = value;                       break;
                         case "password":    password = value;                       break;
                         case "term":        term = value;                           break;
@@ -94,8 +105,8 @@ public class SpireAutomator {
                             break;
         }
 
-        // Go to the UMass SPIRE homepage in the browser.
-        driver.get(UMass.LOGIN_URL);
+        // Go to the target website in the browser. Default is UMass SPIRE homepage.
+        driver.get(UMass.SPIRE_HOME_URL);
         do {
             // If no username was provided, prompt for one.
             if(username == null) {
@@ -162,7 +173,7 @@ public class SpireAutomator {
                                 searches.get(0).setStep1TermSelect(term);
                                 // Reprocess each command-line argument to find arguments for houser.
                                 for(String arg : args) {
-                                    String[] argSplit = arg.split("=");
+                                    String[] argSplit = arg.split("=", 2);
                                     // Only parse the argument if it is splittable, such as "param=value"
                                     if(argSplit.length > 1) {
                                         // Do not alter the input strings, fields may need to be exact (ex. password).
@@ -369,10 +380,12 @@ public class SpireAutomator {
         System.out.println("The automator will not prompt the user for unnecessary arguments.");
         System.out.println("It is recommended to wrap all parameter/value arguments in quotes to preserve spaces,");
         System.out.println("\tespecially arguments without predefined values. Here is an example of a good command:");
-        System.out.println("\tjava spireautomator.SpireAutomator \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
+        System.out.println("\tjava -jar spireautomator.jar \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
         System.out.println(getHeaderSeparator("GENERAL", separatorLength));
         System.out.println("The following are runtime arguments used universally by all automators:");
         System.out.println("\tbrowser=[chrome, firefox]");
+        System.out.println("\ttimeout=[>0]");
+        System.out.println("\turl");
         System.out.println("\tautomator=[enroller, houser]");
         System.out.println("\tusername");
         System.out.println("\tpassword");
