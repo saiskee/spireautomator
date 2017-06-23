@@ -3,12 +3,15 @@ package spireautomator;
 import autoenroller.*;
 import autohouser.RoomSearch;
 import autohouser.SpireHousing;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 import static org.apache.commons.lang3.SystemUtils.IS_OS_LINUX;
@@ -21,8 +24,9 @@ import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
  */
 public class SpireAutomator {
     public static void main(String[] args) {
-        Browser browser = null;
+        UMass.Browser browser = null;
         WebDriver driver = null;
+        String userDriver = null;
         Automator automator = null;
         String username = null;
         String password = null;
@@ -39,11 +43,6 @@ public class SpireAutomator {
                     String param = argSplit[0];
                     String value = argSplit[1];
                     switch(param) {
-                        case "browser":     switch(value) {
-                            case "chrome":  browser = Browser.CHROME;     break;
-                            case "firefox": browser = Browser.FIREFOX;    break;
-                            default:        break;
-                        }   break;
                         case "automator":   switch(value) {
                             case "enroller":    automator = Automator.ENROLLER; break;
                             case "houser":      automator = Automator.HOUSER;   break;
@@ -59,6 +58,12 @@ public class SpireAutomator {
                         } catch(NumberFormatException e) {
                             System.out.println("Timeout input must be a number. Ignoring.");
                         }   break;
+                        case "verbose":     switch(value.trim().toLowerCase()) {
+                            case "true":    UMass.VERBOSE = true;           break;
+                            case "false":   UMass.VERBOSE = false;          break;
+                            default:        break;
+                        }   break;
+                        case "driver_path": userDriver = value;                     break;
                         case "url":         UMass.SPIRE_HOME_URL = value;           break;
                         case "username":    username = value;                       break;
                         case "password":    password = value;                       break;
@@ -78,31 +83,39 @@ public class SpireAutomator {
         while (browser == null) {
             System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
             switch(new Scanner(System.in).nextInt()) {
-                case 1:     browser = Browser.CHROME;   break;
-                case 2:     browser = Browser.FIREFOX;  break;
+                case 1:     browser = UMass.Browser.CHROME;   break;
+                case 2:     browser = UMass.Browser.FIREFOX;  break;
                 default:    break;
             }
         }
-        // Assign the appropriate web driver for the preferred browser and operating system.
+        WebDriverExecutable executable = null;
         switch(browser) {
             case CHROME:    if (IS_OS_WINDOWS) {
-                                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_WIN32);
+                                executable = WebDriverExecutable.CHROME_WIN32;
                             } else if (IS_OS_MAC) {
-                                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_MAC64);
+                                executable = WebDriverExecutable.CHROME_MAC64;
                             } else if (IS_OS_LINUX) {
-                                System.setProperty("webdriver.chrome.driver", WebDriverExecutable.CHROME_LINUX64);
-                            }
-                            driver = new ChromeDriver();
-                            break;
-            case FIREFOX:    if (IS_OS_WINDOWS) {
-                                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_WIN64);
+                                executable = WebDriverExecutable.CHROME_LNX64;
+                            } break;
+            case FIREFOX:   if (IS_OS_WINDOWS) {
+                                executable = WebDriverExecutable.FIREFOX_WIN64;
                             } else if (IS_OS_MAC) {
-                                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_MACOS);
+                                executable = WebDriverExecutable.FIREFOX_MACOS;
                             } else if (IS_OS_LINUX) {
-                                System.setProperty("webdriver.gecko.driver", WebDriverExecutable.FIREFOX_LINUX64);
-                            }
-                            driver = new FirefoxDriver();
-                            break;
+                                executable = WebDriverExecutable.FIREFOX_LNX64;
+                            } break;
+        }
+        File executableFile = getExecutable(executable, userDriver);
+        if(executable == WebDriverExecutable.CHROME_WIN32 ||
+                executable == WebDriverExecutable.CHROME_MAC64 ||
+                executable == WebDriverExecutable.CHROME_LNX64) {
+            System.setProperty("webdriver.chrome.driver", executableFile.getAbsolutePath());
+            driver = new ChromeDriver();
+        } else if(executable == WebDriverExecutable.FIREFOX_WIN64 ||
+                executable == WebDriverExecutable.FIREFOX_MACOS ||
+                executable == WebDriverExecutable.FIREFOX_LNX64) {
+            System.setProperty("webdriver.gecko.driver", executableFile.getAbsolutePath());
+            driver = new FirefoxDriver();
         }
 
         // Go to the target website in the browser. Default is UMass SPIRE homepage.
@@ -361,6 +374,83 @@ public class SpireAutomator {
         // End actions
     }
 
+    public static File getExecutable(WebDriverExecutable exec, String userDriver) {
+        File executableFile;
+        if(userDriver != null) {
+            if(!userDriver.equals("")) {
+                executableFile = new File(userDriver);
+                if(executableFile.exists() && executableFile.isFile()) {
+                    UMass.verbosePrintln("User-provided WebDriver executable found \""+executableFile.getAbsolutePath()+"\"");
+                    return executableFile;
+                } else {
+                    UMass.verbosePrintln("User-provided WebDriver executable not found. Finding elsewhere.");
+                }
+            }
+        }
+        // User did not provide a valid driver path. Retrieving from temp directory, or downloading.
+        File tempDir = getTemporaryDirectory();
+        if(tempDir != null) {
+            executableFile = new File(tempDir, exec.getFileName());
+            if(executableFile.exists()) {
+                UMass.verbosePrintln("WebDriver executable found \""+executableFile.getAbsolutePath()+"\"");
+                return executableFile;
+            } else {
+                // Temporary directory created, no executable found. Need to download.
+                if(downloadExecutable(exec, executableFile)) {
+                    // Download succeeded.
+                    return executableFile;
+                } else {
+                    // Download failed. Error message should have already been printed.
+                    return null;
+                }
+            }
+        } else {
+            // Temporary directory could not be created. Message should have already been printed.
+            return null;
+        }
+    }
+
+    private static boolean downloadExecutable(WebDriverExecutable exec, File destFile) {
+        boolean result = false;
+        try {
+            // This library function takes care of all of the logistics of downloading from the internet.
+            UMass.verbosePrint("Downloading \""+exec.getUrl()+"\"... ");
+            FileUtils.copyURLToFile(new URL(exec.getUrl()), destFile);
+            if(destFile.exists()) {
+                // Checks if it is a compressed file.
+                if(FilenameUtils.isExtension(destFile.getAbsolutePath(), new String[]{"zip", "tar", "gz"})) {
+
+                }
+                UMass.verbosePrintln("completed.");
+                result = true;
+            }
+        } catch(IOException e) {
+            UMass.verbosePrintln("failed.");
+            UMass.verbosePrintln(e.getMessage());
+            result = false;
+        }
+        return result;
+    }
+
+    private static File getTemporaryDirectory() {
+        // Windows: C:\Users\<USER>\AppData\Local\Temp\spireautomator
+        File tempDir = new File(System.getProperty("java.io.tmpdir"), "spireautomator");
+        if (!tempDir.exists()) {
+            UMass.verbosePrint("Making new temporary directory \"" + tempDir.getAbsolutePath() + "\"... ");
+            // If the directory doesn't exist, then attempt to make a directory.
+            if (!tempDir.mkdir()) {
+                UMass.verbosePrintln("failed.");
+                // If creating the directory failed, revert the returned File to null.
+                tempDir = null;
+            } else {
+                UMass.verbosePrintln("completed.");
+            }
+        } else {
+            UMass.verbosePrintln("Found temporary directory \""+tempDir.getAbsolutePath()+"\"");
+        }
+        return tempDir;
+    }
+
     private static void printHelp(File asciiArt) {
         int separatorLength = 80;
         try {
@@ -383,7 +473,8 @@ public class SpireAutomator {
         System.out.println("\tjava -jar spireautomator.jar \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
         System.out.println(getHeaderSeparator("GENERAL", separatorLength));
         System.out.println("The following are runtime arguments used universally by all automators:");
-        System.out.println("\tbrowser=[chrome, firefox]");
+        System.out.println("\tdriver");
+        System.out.println("\tverbose=[true, false]");
         System.out.println("\ttimeout=[>0]");
         System.out.println("\turl");
         System.out.println("\tautomator=[enroller, houser]");

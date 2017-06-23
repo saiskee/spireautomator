@@ -15,12 +15,27 @@ package spireautomator;
  * Known Selenium functionality problems on:
  * Firefox on Linux
  */
-//TODO: Make WebDriverExecutable into enum?
-public class WebDriverExecutable {
-    public static final String CHROME_WIN32 = "chromedriver-win32.exe";
-    public static final String CHROME_MAC64 = "chromedriver-mac64";
-    public static final String CHROME_LINUX64 = "chromedriver-linux64";
-    public static final String FIREFOX_WIN64 = "geckodriver-win32.exe";
-    public static final String FIREFOX_MACOS = "geckodriver-macos";
-    public static final String FIREFOX_LINUX64 = "geckodriver-linux64";
+public enum WebDriverExecutable {
+    CHROME_WIN32 ("chromedriver-win32.exe", "https://chromedriver.storage.googleapis.com/2.30/chromedriver_win32.zip"),
+    CHROME_MAC64 ("chromedriver-mac64", "https://chromedriver.storage.googleapis.com/2.30/chromedriver_mac64.zip"),
+    CHROME_LNX64 ("chromedriver-linux64", "https://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip"),
+    FIREFOX_WIN64 ("geckodriver-win32.exe", "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-win32.zip"),
+    FIREFOX_MACOS ("geckodriver-macos", "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-macos.tar.gz"),
+    FIREFOX_LNX64 ("geckodriver-linux64", "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-linux64.tar.gz");
+
+    private final String url;
+    private final String fileName;
+
+    WebDriverExecutable(String fileName, String url) {
+        this.fileName = fileName;
+        this.url = url;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getUrl() {
+        return url;
+    }
 }

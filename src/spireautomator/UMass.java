@@ -8,6 +8,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -314,6 +315,26 @@ public class UMass {
             Thread.sleep(millis);
         } catch(InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    // System
+    public enum Browser {
+        CHROME, FIREFOX
+    }
+
+    // Verbosity
+    public static boolean VERBOSE = false;
+
+    public static void verbosePrintln(String s) {
+        if(UMass.VERBOSE) {
+            System.out.println(s);
+        }
+    }
+
+    public static void verbosePrint(String s) {
+        if(UMass.VERBOSE) {
+            System.out.print(s);
         }
     }
 
