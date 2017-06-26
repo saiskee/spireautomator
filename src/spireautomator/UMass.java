@@ -318,11 +318,6 @@ public class UMass {
         }
     }
 
-    // System
-    public enum Browser {
-        CHROME, FIREFOX
-    }
-
     // Verbosity
     public static boolean VERBOSE = false;
 

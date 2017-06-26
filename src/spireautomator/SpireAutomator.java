@@ -3,6 +3,11 @@ package spireautomator;
 import autoenroller.*;
 import autohouser.RoomSearch;
 import autohouser.SpireHousing;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
@@ -23,10 +28,49 @@ import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
  * SPIRE enrolling and housing programs at different levels of depth.
  */
 public class SpireAutomator {
+    public enum OS {
+        WIN, MAC, NIX;
+        private static OS getOS() {
+            OS result = null;
+            if(IS_OS_WINDOWS) {
+                result = WIN;
+            } else if(IS_OS_MAC) {
+                result = MAC;
+            } else if(IS_OS_LINUX) {
+                result = NIX;
+            }
+            return result;
+        }
+    }
+    public enum Browser {
+        CHROME, FIREFOX;
+        private static Browser getBrowser(String input) {
+            Browser result = null;
+            switch(input.trim().toLowerCase()) {
+                case "chrome":  result = CHROME;    break;
+                case "firefox": result = FIREFOX;   break;
+                case "gecko":   result = FIREFOX;   break;
+                default:        break;
+            }
+            return result;
+        }
+        private static Browser promptBrowser() {
+            Browser result = null;
+            System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
+            switch(new Scanner(System.in).nextInt()) {
+                case 1:     result = CHROME;   break;
+                case 2:     result = FIREFOX;  break;
+                default:    break;
+            }
+            return result;
+        }
+    }
+
     public static void main(String[] args) {
-        UMass.Browser browser = null;
+        OS os = OS.getOS();
+        Browser browser = null;
+        File driverPath = null;
         WebDriver driver = null;
-        String userDriver = null;
         Automator automator = null;
         String username = null;
         String password = null;
@@ -63,7 +107,8 @@ public class SpireAutomator {
                             case "false":   UMass.VERBOSE = false;          break;
                             default:        break;
                         }   break;
-                        case "driver_path": userDriver = value;                     break;
+                        case "driver_path": driverPath = new File(value);           break;
+                        case "browser":     browser = Browser.getBrowser(value);    break;
                         case "url":         UMass.SPIRE_HOME_URL = value;           break;
                         case "username":    username = value;                       break;
                         case "password":    password = value;                       break;
@@ -79,43 +124,36 @@ public class SpireAutomator {
             // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
 
-        // If no preferred browser was provided, prompt for one.
+        // If no valid preferred browser was provided, prompt for one.
         while (browser == null) {
-            System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
-            switch(new Scanner(System.in).nextInt()) {
-                case 1:     browser = UMass.Browser.CHROME;   break;
-                case 2:     browser = UMass.Browser.FIREFOX;  break;
-                default:    break;
+            browser = Browser.promptBrowser();
+        }
+        // Check user-provided executable now that we have OS and browser preferences.
+        if(!isDriverPathValid(os, browser, driverPath)) {
+            // User input was invalid; check temporary directory to see if it contains a valid executable.
+            File tempDir = getTemporaryDirectory();
+            boolean driverFoundInTempDir = false;
+            for(File tempDirFile: tempDir.listFiles()) {
+                // If a file in the temporary directory is a valid executable, designate it.
+                if(isDriverPathValid(os, browser, tempDirFile)) {
+                    driverPath = tempDirFile;
+                    driverFoundInTempDir = true;
+                }
+            }
+            if(!driverFoundInTempDir) {
+                driverPath = downloadExecutable(tempDir, os, browser);
             }
         }
-        WebDriverExecutable executable = null;
+        System.out.println(driverPath.getAbsolutePath());
+        // Now set system properties and construct driver.
         switch(browser) {
-            case CHROME:    if (IS_OS_WINDOWS) {
-                                executable = WebDriverExecutable.CHROME_WIN32;
-                            } else if (IS_OS_MAC) {
-                                executable = WebDriverExecutable.CHROME_MAC64;
-                            } else if (IS_OS_LINUX) {
-                                executable = WebDriverExecutable.CHROME_LNX64;
-                            } break;
-            case FIREFOX:   if (IS_OS_WINDOWS) {
-                                executable = WebDriverExecutable.FIREFOX_WIN64;
-                            } else if (IS_OS_MAC) {
-                                executable = WebDriverExecutable.FIREFOX_MACOS;
-                            } else if (IS_OS_LINUX) {
-                                executable = WebDriverExecutable.FIREFOX_LNX64;
-                            } break;
-        }
-        File executableFile = getExecutable(executable, userDriver);
-        if(executable == WebDriverExecutable.CHROME_WIN32 ||
-                executable == WebDriverExecutable.CHROME_MAC64 ||
-                executable == WebDriverExecutable.CHROME_LNX64) {
-            System.setProperty("webdriver.chrome.driver", executableFile.getAbsolutePath());
-            driver = new ChromeDriver();
-        } else if(executable == WebDriverExecutable.FIREFOX_WIN64 ||
-                executable == WebDriverExecutable.FIREFOX_MACOS ||
-                executable == WebDriverExecutable.FIREFOX_LNX64) {
-            System.setProperty("webdriver.gecko.driver", executableFile.getAbsolutePath());
-            driver = new FirefoxDriver();
+            case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
+                            driver = new ChromeDriver();
+                            break;
+            case FIREFOX:   System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
+                            driver = new FirefoxDriver();
+                            break;
+            default:        break;
         }
 
         // Go to the target website in the browser. Default is UMass SPIRE homepage.
@@ -374,61 +412,121 @@ public class SpireAutomator {
         // End actions
     }
 
-    public static File getExecutable(WebDriverExecutable exec, String userDriver) {
-        File executableFile;
-        if(userDriver != null) {
-            if(!userDriver.equals("")) {
-                executableFile = new File(userDriver);
-                if(executableFile.exists() && executableFile.isFile()) {
-                    UMass.verbosePrintln("User-provided WebDriver executable found \""+executableFile.getAbsolutePath()+"\"");
-                    return executableFile;
-                } else {
-                    UMass.verbosePrintln("User-provided WebDriver executable not found. Finding elsewhere.");
-                }
-            }
-        }
-        // User did not provide a valid driver path. Retrieving from temp directory, or downloading.
-        File tempDir = getTemporaryDirectory();
-        if(tempDir != null) {
-            executableFile = new File(tempDir, exec.getFileName());
-            if(executableFile.exists()) {
-                UMass.verbosePrintln("WebDriver executable found \""+executableFile.getAbsolutePath()+"\"");
-                return executableFile;
-            } else {
-                // Temporary directory created, no executable found. Need to download.
-                if(downloadExecutable(exec, executableFile)) {
-                    // Download succeeded.
-                    return executableFile;
-                } else {
-                    // Download failed. Error message should have already been printed.
-                    return null;
-                }
+    private static boolean isDriverPathValid(OS os, Browser browser, File driverPath) {
+        boolean result = false;
+        // Checks that the path isn't null, that it exists, that it's a file, and that we have execute permissions.
+        if(driverPath != null && driverPath.exists() && driverPath.isFile() && driverPath.canExecute()) {
+            String ext = FilenameUtils.getExtension(driverPath.getName());
+            switch(os) {
+                case WIN:   if(ext.equals("exe")) {
+                                result = isDriverBrowserValid(browser, driverPath.getName());
+                            }   break;
+                case MAC:   if(!ext.equals("exe")) {
+                                result = isDriverBrowserValid(browser, driverPath.getName());
+                            }   break;
+                case NIX:   if(!ext.equals("exe")) {
+                                result = isDriverBrowserValid(browser, driverPath.getName());
+                            }   break;
             }
         } else {
-            // Temporary directory could not be created. Message should have already been printed.
-            return null;
+            result = false;
         }
+        return result;
     }
 
-    private static boolean downloadExecutable(WebDriverExecutable exec, File destFile) {
+    private static boolean isDriverBrowserValid(Browser browser, String name) {
         boolean result = false;
+        switch(browser) {
+            case CHROME:    if(name.contains("chrome")) {
+                                result = true;
+                            }   break;
+            case FIREFOX:   if(name.contains("firefox") || name.contains("gecko")) {
+                                result = true;
+                            }   break;
+        }
+        return result;
+    }
+
+    private static File downloadExecutable(File destDir, OS os, Browser browser) {
+        WebDriverExecutable exec = WebDriverExecutable.getWebDriverExecutable(os, browser);
+        File destFile = new File(destDir, exec.getFileName());
+        UMass.verbosePrint("Downloading \""+exec.getUrl()+"\"... ");
         try {
             // This library function takes care of all of the logistics of downloading from the internet.
-            UMass.verbosePrint("Downloading \""+exec.getUrl()+"\"... ");
             FileUtils.copyURLToFile(new URL(exec.getUrl()), destFile);
             if(destFile.exists()) {
                 // Checks if it is a compressed file.
-                if(FilenameUtils.isExtension(destFile.getAbsolutePath(), new String[]{"zip", "tar", "gz"})) {
-
+                switch(FilenameUtils.getExtension(destFile.getAbsolutePath())) {
+                    case "zip": UMass.verbosePrint("extracting... ");
+                                destFile = extractZipFile(destFile, destDir);
+                                break;
+                    case "gz":  UMass.verbosePrint("extracting... ");
+                                destFile = extractTarGzFile(destFile, destDir);
+                                break;
+                    default:    break;
                 }
                 UMass.verbosePrintln("completed.");
-                result = true;
             }
         } catch(IOException e) {
             UMass.verbosePrintln("failed.");
             UMass.verbosePrintln(e.getMessage());
-            result = false;
+            destFile = null;
         }
+        return destFile;
+    }
+
+    private static File extractZipFile(File zip, File destDir) throws IOException {
+        File result = null;
+        int BUFFER = 2048;
+        FileInputStream fin = new FileInputStream(zip);
+        BufferedInputStream bin = new BufferedInputStream(fin);
+        ZipArchiveInputStream zipIn = new ZipArchiveInputStream(bin);
+        ZipArchiveEntry entry;
+        while((entry = zipIn.getNextZipEntry()) != null) {
+            if(entry.isDirectory()) {
+                result = new File(destDir, entry.getName());
+                result.mkdirs();
+            } else {
+                result = new File(destDir, entry.getName());
+                FileOutputStream fos = new FileOutputStream(result);
+                BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
+                int count;
+                byte data[] = new byte[BUFFER];
+                while((count = zipIn.read(data, 0, BUFFER)) != -1) {
+                    bos.write(data, 0, count);
+                }
+                bos.close();
+            }
+        }
+        zipIn.close();
+        return result;
+    }
+
+    private static File extractTarGzFile(File tarGz, File destDir) throws IOException {
+        File result = null;
+        int BUFFER = 2048;
+        FileInputStream fin = new FileInputStream(tarGz);
+        BufferedInputStream bin = new BufferedInputStream(fin);
+        GzipCompressorInputStream gzIn = new GzipCompressorInputStream(bin);
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
+        TarArchiveEntry entry;
+        while((entry = tarIn.getNextTarEntry()) != null) {
+            if(entry.isDirectory()) {
+                result = new File(destDir, entry.getName());
+                result.mkdirs();
+            } else {
+                result = new File(destDir, entry.getName());
+                FileOutputStream fos = new FileOutputStream(result);
+                BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
+                int count;
+                byte data[] = new byte[BUFFER];
+                while((count = tarIn.read(data, 0, BUFFER)) != -1) {
+                    bos.write(data, 0, count);
+                }
+                bos.close();
+            }
+        }
+        tarIn.close();
         return result;
     }
 

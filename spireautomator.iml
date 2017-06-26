@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.seleniumhq.selenium:selenium-java:3.0.1" level="project" />
+    <orderEntry type="library" name="org.apache.commons:commons-compress:1.14" level="project" />
   </component>
 </module>
