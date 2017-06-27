@@ -144,7 +144,6 @@ public class SpireAutomator {
                 driverPath = downloadExecutable(tempDir, os, browser);
             }
         }
-        System.out.println(driverPath.getAbsolutePath());
         // Now set system properties and construct driver.
         switch(browser) {
             case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
@@ -449,8 +448,8 @@ public class SpireAutomator {
 
     private static File downloadExecutable(File destDir, OS os, Browser browser) {
         WebDriverExecutable exec = WebDriverExecutable.getWebDriverExecutable(os, browser);
-        File destFile = new File(destDir, exec.getFileName());
-        UMass.verbosePrint("Downloading \""+exec.getUrl()+"\"... ");
+        File destFile = new File(destDir, FilenameUtils.getName(exec.getUrl()));
+        UMass.verbosePrint("Downloading \""+exec.getUrl()+"\" to \""+destFile.getAbsolutePath()+"\"... ");
         try {
             // This library function takes care of all of the logistics of downloading from the internet.
             FileUtils.copyURLToFile(new URL(exec.getUrl()), destFile);

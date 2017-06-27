@@ -16,9 +16,9 @@ package spireautomator;
  * Firefox on Linux
  */
 public enum WebDriverExecutable {
-    CHROME_WIN32 ("chromedriver-win32.exe", "https://chromedriver.storage.googleapis.com/2.26/chromedriver_win32.zip"),
-    CHROME_MAC64 ("chromedriver-mac64", "https://chromedriver.storage.googleapis.com/2.26/chromedriver_mac64.zip"),
-    CHROME_NIX64("chromedriver-linux64", "https://chromedriver.storage.googleapis.com/2.26/chromedriver_linux64.zip"),
+    CHROME_WIN32 ("chromedriver-win32.exe", "https://chromedriver.storage.googleapis.com/2.30/chromedriver_win32.zip"),
+    CHROME_MAC64 ("chromedriver-mac64", "https://chromedriver.storage.googleapis.com/2.30/chromedriver_mac64.zip"),
+    CHROME_NIX64("chromedriver-linux64", "https://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip"),
     FIREFOX_WIN64 ("geckodriver-win32.exe", "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-win32.zip"),
     FIREFOX_MACOS ("geckodriver-macos", "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-macos.tar.gz"),
     FIREFOX_NIX64("geckodriver-linux64", "https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-linux64.tar.gz");
