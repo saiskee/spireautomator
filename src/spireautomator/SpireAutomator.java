@@ -18,6 +18,8 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.apache.commons.lang3.SystemUtils.IS_OS_LINUX;
 import static org.apache.commons.lang3.SystemUtils.IS_OS_MAC;
@@ -66,7 +68,10 @@ public class SpireAutomator {
         }
     }
 
+    private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
     public static void main(String[] args) {
+        LOGGER.setLevel(Level.OFF);
         OS os = OS.getOS();
         Browser browser = null;
         File driverPath = null;
@@ -102,9 +107,12 @@ public class SpireAutomator {
                         } catch(NumberFormatException e) {
                             System.out.println("Timeout input must be a number. Ignoring.");
                         }   break;
-                        case "verbose":     switch(value.trim().toLowerCase()) {
-                            case "true":    UMass.VERBOSE = true;           break;
-                            case "false":   UMass.VERBOSE = false;          break;
+                        case "logging":     switch(value.trim().toLowerCase()) {
+                            case "off":     LOGGER.setLevel(Level.OFF);     break;
+                            case "severe":  LOGGER.setLevel(Level.SEVERE);  break;
+                            case "warning": LOGGER.setLevel(Level.WARNING); break;
+                            case "info":    LOGGER.setLevel(Level.INFO);    break;
+                            case "all":     LOGGER.setLevel(Level.ALL);     break;
                             default:        break;
                         }   break;
                         case "driver_path": driverPath = new File(value);           break;
@@ -124,8 +132,20 @@ public class SpireAutomator {
             // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
 
+        LOGGER.config("Logging level = \""+LOGGER.getLevel().toString()+"\"");
+        LOGGER.config("Operating system = \""+os.name()+"\"");
+        LOGGER.config("Browser = "+browser+"\"");
+        LOGGER.config("Driver path = \""+driverPath+"\"");
+        LOGGER.config("Timeout limit = \""+UMass.TIMEOUT_INTERVAL+"\"");
+        LOGGER.config("URL = \""+UMass.SPIRE_HOME_URL+"\"");
+        LOGGER.config("Automator = \""+automator+"\"");
+        LOGGER.config("Username = \""+username+"\"");
+        LOGGER.config("Password = \""+password+"\"");
+        LOGGER.config("Term = \""+term+"\"");
+
         // If no valid preferred browser was provided, prompt for one.
         while (browser == null) {
+            LOGGER.info("Prompting user for browser.");
             browser = Browser.promptBrowser();
         }
         // Check user-provided executable now that we have OS and browser preferences.
@@ -133,23 +153,29 @@ public class SpireAutomator {
             // User input was invalid; check temporary directory to see if it contains a valid executable.
             File tempDir = getTemporaryDirectory();
             boolean driverFoundInTempDir = false;
+            LOGGER.info("Searching the temporary directory for a valid executable.");
             for(File tempDirFile: tempDir.listFiles()) {
+                LOGGER.config("Current file: \""+tempDirFile.getName()+"\"");
                 // If a file in the temporary directory is a valid executable, designate it.
                 if(isDriverPathValid(os, browser, tempDirFile)) {
                     driverPath = tempDirFile;
                     driverFoundInTempDir = true;
+                    LOGGER.info("Executable file found: \""+driverPath.getAbsolutePath()+"\"");
                 }
             }
             if(!driverFoundInTempDir) {
+                LOGGER.info("No executable found in temporary directory. Downloading from internet.");
                 driverPath = downloadExecutable(tempDir, os, browser);
             }
         }
         // Now set system properties and construct driver.
         switch(browser) {
             case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
+                            LOGGER.info("Environment variable \"webdriver.chrome.driver\"=\""+System.getProperty("webdriver.chrome.driver")+"\"");
                             driver = new ChromeDriver();
                             break;
             case FIREFOX:   System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
+                            LOGGER.info("Environment variable \"webdriver.gecko.driver\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
                             driver = new FirefoxDriver();
                             break;
             default:        break;
@@ -157,20 +183,25 @@ public class SpireAutomator {
 
         // Go to the target website in the browser. Default is UMass SPIRE homepage.
         driver.get(UMass.SPIRE_HOME_URL);
+        LOGGER.info("Driver going to \""+driver.getCurrentUrl()+"\"");
         do {
             // If no username was provided, prompt for one.
             if(username == null) {
+                LOGGER.info("Prompting user for username.");
                 System.out.println("Username?");
                 username = new Scanner(System.in).nextLine();
             }
             // If no password was provided, prompt for one.
             if(password == null) {
+                LOGGER.info("Prompting user for password.");
                 System.out.println("Password?");
                 Console console = System.console();
                 // Use the console to securely read the password without displaying it on-screen.
                 if(console != null) {
+                    LOGGER.info("Reading password safely through System.Console.");
                     password = new String(console.readPassword());
                 } else {
+                    LOGGER.info("Reading password unsafely through System.in.");
                     password = new Scanner(System.in).nextLine();
                 }
             }
@@ -430,6 +461,7 @@ public class SpireAutomator {
         } else {
             result = false;
         }
+        LOGGER.info("WebDriver executable path is valid: "+result);
         return result;
     }
 
@@ -449,101 +481,133 @@ public class SpireAutomator {
     private static File downloadExecutable(File destDir, OS os, Browser browser) {
         WebDriverExecutable exec = WebDriverExecutable.getWebDriverExecutable(os, browser);
         File destFile = new File(destDir, FilenameUtils.getName(exec.getUrl()));
-        UMass.verbosePrint("Downloading \""+exec.getUrl()+"\" to \""+destFile.getAbsolutePath()+"\"... ");
         try {
+            LOGGER.info("Downloading \""+exec.getUrl()+"\" to \""+destFile.getAbsolutePath()+"\"");
             // This library function takes care of all of the logistics of downloading from the internet.
             FileUtils.copyURLToFile(new URL(exec.getUrl()), destFile);
             if(destFile.exists()) {
                 // Checks if it is a compressed file.
                 switch(FilenameUtils.getExtension(destFile.getAbsolutePath())) {
-                    case "zip": UMass.verbosePrint("extracting... ");
-                                destFile = extractZipFile(destFile, destDir);
+                    case "zip": LOGGER.info("Extracting \""+destFile.getName()+"\"");
+                                File extractFile = extractZipFile(destFile, destDir);
+                                LOGGER.info("Deleting "+ destFile.getName()+"\"");
+                                if(!destFile.delete()) {
+                                    LOGGER.warning("Failed to delete archive \""+destFile.getAbsolutePath()+"\"");
+                                }
+                                destFile = extractFile;
                                 break;
-                    case "gz":  UMass.verbosePrint("extracting... ");
-                                destFile = extractTarGzFile(destFile, destDir);
+                    case "gz":  LOGGER.info("Extracting \""+destFile.getName()+"\"");
+                                extractFile = extractTarGzFile(destFile, destDir);
+                                LOGGER.info("Deleting "+ destFile.getName()+"\"");
+                                if(!destFile.delete()) {
+                                    LOGGER.warning("Failed to delete archive \""+destFile.getAbsolutePath()+"\"");
+                                }
+                                destFile = extractFile;
                                 break;
                     default:    break;
                 }
-                UMass.verbosePrintln("completed.");
             }
         } catch(IOException e) {
-            UMass.verbosePrintln("failed.");
-            UMass.verbosePrintln(e.getMessage());
+            LOGGER.info(e.getMessage());
             destFile = null;
         }
         return destFile;
     }
 
-    private static File extractZipFile(File zip, File destDir) throws IOException {
+    private static File extractZipFile(File zip, File destDir) {
         File result = null;
         int BUFFER = 2048;
-        FileInputStream fin = new FileInputStream(zip);
-        BufferedInputStream bin = new BufferedInputStream(fin);
-        ZipArchiveInputStream zipIn = new ZipArchiveInputStream(bin);
-        ZipArchiveEntry entry;
-        while((entry = zipIn.getNextZipEntry()) != null) {
-            if(entry.isDirectory()) {
-                result = new File(destDir, entry.getName());
-                result.mkdirs();
-            } else {
-                result = new File(destDir, entry.getName());
-                FileOutputStream fos = new FileOutputStream(result);
-                BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
-                int count;
-                byte data[] = new byte[BUFFER];
-                while((count = zipIn.read(data, 0, BUFFER)) != -1) {
-                    bos.write(data, 0, count);
+        try {
+            FileInputStream fin = new FileInputStream(zip);
+            BufferedInputStream bin = new BufferedInputStream(fin);
+            ZipArchiveInputStream zipIn = new ZipArchiveInputStream(bin);
+            ZipArchiveEntry entry;
+            while((entry = zipIn.getNextZipEntry()) != null) {
+                LOGGER.info("Current .zip entry is \""+entry.getName()+"\"");
+                if(entry.isDirectory()) {
+                    result = new File(destDir, entry.getName());
+                    if(result.mkdirs()) {
+                        LOGGER.info("Created \""+result.getName()+"\"");
+                    } else {
+                        LOGGER.warning("Failed to create \""+result.getName()+"\"");
+                    }
+                } else {
+                    result = new File(destDir, entry.getName());
+                    FileOutputStream fos = new FileOutputStream(result);
+                    BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
+                    int count;
+                    byte data[] = new byte[BUFFER];
+                    while((count = zipIn.read(data, 0, BUFFER)) != -1) {
+                        bos.write(data, 0, count);
+                        LOGGER.config("Wrote data block "+count);
+                    }
+                    bos.close();
+                    LOGGER.info("Extracted \""+result.getName()+"\"");
                 }
-                bos.close();
             }
+            zipIn.close();
+            return result;
+        } catch(IOException e) {
+            LOGGER.severe(e.toString());
         }
-        zipIn.close();
         return result;
     }
 
-    private static File extractTarGzFile(File tarGz, File destDir) throws IOException {
+    private static File extractTarGzFile(File tarGz, File destDir){
         File result = null;
         int BUFFER = 2048;
-        FileInputStream fin = new FileInputStream(tarGz);
-        BufferedInputStream bin = new BufferedInputStream(fin);
-        GzipCompressorInputStream gzIn = new GzipCompressorInputStream(bin);
-        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
-        TarArchiveEntry entry;
-        while((entry = tarIn.getNextTarEntry()) != null) {
-            if(entry.isDirectory()) {
-                result = new File(destDir, entry.getName());
-                result.mkdirs();
-            } else {
-                result = new File(destDir, entry.getName());
-                FileOutputStream fos = new FileOutputStream(result);
-                BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
-                int count;
-                byte data[] = new byte[BUFFER];
-                while((count = tarIn.read(data, 0, BUFFER)) != -1) {
-                    bos.write(data, 0, count);
+        try {
+            FileInputStream fin = new FileInputStream(tarGz);
+            BufferedInputStream bin = new BufferedInputStream(fin);
+            GzipCompressorInputStream gzIn = new GzipCompressorInputStream(bin);
+            TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
+            TarArchiveEntry entry;
+            while((entry = tarIn.getNextTarEntry()) != null) {
+                LOGGER.info("Current .tar.gz entry is \""+entry.getName()+"\"");
+                if(entry.isDirectory()) {
+                    result = new File(destDir, entry.getName());
+                    if(result.mkdirs()) {
+                        LOGGER.info("Created \""+result.getName()+"\"");
+                    } else {
+                        LOGGER.warning("Failed to create \""+result.getName()+"\"");
+                    }
+                } else {
+                    result = new File(destDir, entry.getName());
+                    FileOutputStream fos = new FileOutputStream(result);
+                    BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
+                    int count;
+                    byte data[] = new byte[BUFFER];
+                    while((count = tarIn.read(data, 0, BUFFER)) != -1) {
+                        bos.write(data, 0, count);
+                        LOGGER.config("Wrote data block "+count);
+                    }
+                    bos.close();
+                    LOGGER.info("Extracted \""+result.getName()+"\"");
                 }
-                bos.close();
             }
+            tarIn.close();
+        } catch(IOException e) {
+            LOGGER.severe(e.toString());
         }
-        tarIn.close();
         return result;
     }
 
     private static File getTemporaryDirectory() {
         // Windows: C:\Users\<USER>\AppData\Local\Temp\spireautomator
         File tempDir = new File(System.getProperty("java.io.tmpdir"), "spireautomator");
+        LOGGER.info("Temporary directory shall be \""+tempDir.getAbsolutePath()+"\"");
         if (!tempDir.exists()) {
-            UMass.verbosePrint("Making new temporary directory \"" + tempDir.getAbsolutePath() + "\"... ");
+            LOGGER.info("Making new temporary directory \""+tempDir.getAbsolutePath()+"\"... ");
             // If the directory doesn't exist, then attempt to make a directory.
             if (!tempDir.mkdir()) {
-                UMass.verbosePrintln("failed.");
+                LOGGER.warning("Failed to make temporary directory "+tempDir.getAbsolutePath()+"\".");
                 // If creating the directory failed, revert the returned File to null.
                 tempDir = null;
             } else {
-                UMass.verbosePrintln("completed.");
+                LOGGER.info("Successfully made new temporary directory.");
             }
         } else {
-            UMass.verbosePrintln("Found temporary directory \""+tempDir.getAbsolutePath()+"\"");
+            LOGGER.info("The temporary directory already exists.");
         }
         return tempDir;
     }
@@ -553,7 +617,7 @@ public class SpireAutomator {
         try {
             printAsciiArt(asciiArt);
         } catch(IOException e) {
-            // Do not print IOException stack trace.
+            LOGGER.warning(e.toString());
         }
         System.out.println("");
         System.out.println(getHeaderSeparator("INTRODUCTION", separatorLength));
@@ -571,7 +635,7 @@ public class SpireAutomator {
         System.out.println(getHeaderSeparator("GENERAL", separatorLength));
         System.out.println("The following are runtime arguments used universally by all automators:");
         System.out.println("\tdriver");
-        System.out.println("\tverbose=[true, false]");
+        System.out.println("\tlogging=[off, severe, warning, info, config, all]");
         System.out.println("\ttimeout=[>0]");
         System.out.println("\turl");
         System.out.println("\tautomator=[enroller, houser]");

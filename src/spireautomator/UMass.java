@@ -318,21 +318,6 @@ public class UMass {
         }
     }
 
-    // Verbosity
-    public static boolean VERBOSE = false;
-
-    public static void verbosePrintln(String s) {
-        if(UMass.VERBOSE) {
-            System.out.println(s);
-        }
-    }
-
-    public static void verbosePrint(String s) {
-        if(UMass.VERBOSE) {
-            System.out.print(s);
-        }
-    }
-
     public static int tryToInt(String string) {
         int result = Integer.MIN_VALUE;
         try {
