@@ -13,7 +13,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.safari.SafariDriver;
 
 import java.io.*;
 import java.net.URL;
@@ -45,23 +48,38 @@ public class SpireAutomator {
         }
     }
     public enum Browser {
-        CHROME, FIREFOX;
+        CHROME, FIREFOX, IE, EDGE, SAFARI;
         private static Browser getBrowser(String input) {
             Browser result = null;
             switch(input.trim().toLowerCase()) {
-                case "chrome":  result = CHROME;    break;
-                case "firefox": result = FIREFOX;   break;
-                case "gecko":   result = FIREFOX;   break;
+                case "chrome":              result = CHROME;    break;
+                case "googlechrome":        result = CHROME;    break;
+                case "firefox":             result = FIREFOX;   break;
+                case "mozillafirefox":      result = FIREFOX;   break;
+                case "gecko":               result = FIREFOX;   break;
+                case "ie":                  result = IE;        break;
+                case "explorer":            result = IE;        break;
+                case "internetexplorer":    result = IE;        break;
+                case "edge":                result = EDGE;      break;
+                case "microsoftedge":       result = EDGE;      break;
                 default:        break;
             }
             return result;
         }
         private static Browser promptBrowser() {
             Browser result = null;
-            System.out.println("Web browser?\n1: Google Chrome\n2: Mozilla Firefox");
+            System.out.println("Web browser?\n" +
+                    "1: Google Chrome\n" +
+                    "2: Mozilla Firefox\n" +
+                    "3: Internet Explorer\n" +
+                    "4: Microsoft Edge\n" +
+                    "5: Safari");
             switch(new Scanner(System.in).nextInt()) {
-                case 1:     result = CHROME;   break;
-                case 2:     result = FIREFOX;  break;
+                case 1:     result = CHROME;    break;
+                case 2:     result = FIREFOX;   break;
+                case 3:     result = IE;        break;
+                case 4:     result = EDGE;      break;
+                case 5:     result = SAFARI;    break;
                 default:    break;
             }
             return result;
@@ -74,6 +92,7 @@ public class SpireAutomator {
         LOGGER.setLevel(Level.OFF);
         OS os = OS.getOS();
         Browser browser = null;
+        OSBrowser osBrowser = null;
         File driverPath = null;
         WebDriver driver = null;
         Automator automator = null;
@@ -101,11 +120,9 @@ public class SpireAutomator {
                             int timeout = Integer.valueOf(value);
                             if(timeout > 0) {
                                 UMass.TIMEOUT_INTERVAL = timeout;
-                            } else {
-                                System.out.println("Timeout input may not be negative. Ignoring.");
                             }
                         } catch(NumberFormatException e) {
-                            System.out.println("Timeout input must be a number. Ignoring.");
+                            LOGGER.warning(e.getMessage());
                         }   break;
                         case "logging":     switch(value.trim().toLowerCase()) {
                             case "off":     LOGGER.setLevel(Level.OFF);     break;
@@ -143,10 +160,12 @@ public class SpireAutomator {
         LOGGER.config("Password = \""+password+"\"");
         LOGGER.config("Term = \""+term+"\"");
 
-        // If no valid preferred browser was provided, prompt for one.
-        while (browser == null) {
+        // Keep repeating until the user selects a browser that is known to be available for their OS.
+        while(osBrowser == null) {
             LOGGER.info("Prompting user for browser.");
             browser = Browser.promptBrowser();
+            osBrowser = OSBrowser.getOsBrowser(os, browser);
+            LOGGER.info("Selected browser is \""+osBrowser+"\"");
         }
         // Check user-provided executable now that we have OS and browser preferences.
         if(!isDriverPathValid(os, browser, driverPath)) {
@@ -165,18 +184,30 @@ public class SpireAutomator {
             }
             if(!driverFoundInTempDir) {
                 LOGGER.info("No executable found in temporary directory. Downloading from internet.");
-                driverPath = downloadExecutable(tempDir, os, browser);
+                driverPath = downloadExecutable(tempDir, osBrowser);
             }
         }
         // Now set system properties and construct driver.
         switch(browser) {
             case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
-                            LOGGER.info("Environment variable \"webdriver.chrome.driver\"=\""+System.getProperty("webdriver.chrome.driver")+"\"");
+                            LOGGER.info("Environment variable set \"webdriver.chrome.driver\"=\""+System.getProperty("webdriver.chrome.driver")+"\"");
                             driver = new ChromeDriver();
                             break;
             case FIREFOX:   System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
-                            LOGGER.info("Environment variable \"webdriver.gecko.driver\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
+                            LOGGER.info("Environment variable set \"webdriver.gecko.driver\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
                             driver = new FirefoxDriver();
+                            break;
+            case IE:        System.setProperty("webdriver.ie.driver", driverPath.getAbsolutePath());
+                            LOGGER.info("Environment variable set \"webdriver.ie.driver\"=\""+System.getProperty("webdriver.ie.driver")+"\"");
+                            driver = new InternetExplorerDriver();
+                            break;
+            case EDGE:      System.setProperty("webdriver.edge.driver", driverPath.getAbsolutePath());
+                            LOGGER.info("Environment variable set \"webdriver.edge.driver\"=\""+System.getProperty("webdriver.edge.driver")+"\"");
+                            driver = new EdgeDriver();
+                            break;
+            case SAFARI:    //System.setProperty("SELENIUM_SERVER_JAR", driverPath.getAbsolutePath()); // Environment variable may not be necessary on Safari 10+, have not yet tested.
+                            //LOGGER.info("Environment variable set \"SELENIUM_SERVER_JAR\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
+                            driver = new SafariDriver();
                             break;
             default:        break;
         }
@@ -235,82 +266,82 @@ public class SpireAutomator {
         // Go into the appropriate automator program.
         switch(automator) {
             case ENROLLER:      Map<String, Lecture> currentSchedule = new HashMap<>();
-                                Map<String, Lecture> shoppingCart = new HashMap<>();
-                                ArrayList<Action> actions = new ArrayList<>();
-                                setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
-                                SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
-                                spireEnrollment.run();
-                                break;
+                Map<String, Lecture> shoppingCart = new HashMap<>();
+                ArrayList<Action> actions = new ArrayList<>();
+                setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
+                SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
+                spireEnrollment.run();
+                break;
             case HOUSER:        // Used to indicate if the automator should quit after making one housing change,
-                                // or if it should keep searching for a better room forever (until quit).
-                                boolean searchForever = false;
-                                // Default to one search criteria configuration.
-                                // If user calls for more configurations, a larger array will be created & copied into.
-                                ArrayList<RoomSearch> searches = new ArrayList<>();
-                                // Configure only the first search configuration with runtime arguments.
-                                // Additional configurations need to be configured in runtime.
-                                // Term is relevant to several automators so it is retrieved earlier.
-                                searches.add(new RoomSearch());
-                                searches.get(0).setStep1TermSelect(term);
-                                // Reprocess each command-line argument to find arguments for houser.
-                                for(String arg : args) {
-                                    String[] argSplit = arg.split("=", 2);
-                                    // Only parse the argument if it is splittable, such as "param=value"
-                                    if(argSplit.length > 1) {
-                                        // Do not alter the input strings, fields may need to be exact (ex. password).
-                                        String param = argSplit[0];
-                                        String value = argSplit[1];
-                                        switch(param.toLowerCase()) {
-                                            case "searches":    // Subtract one because one RoomSearch already exists.
-                                                                int numSearches = Integer.valueOf(value)-1;
-                                                                // Only make more search criteria if this value is greater than current size.
-                                                                while(numSearches > 0) {
-                                                                    searches.add(new RoomSearch());
-                                                                    numSearches--;
-                                                                }
-                                            case "forever":     switch(value.toLowerCase()) {
-                                                case "true":        searchForever = true;   break;
-                                                case "false":       searchForever = false;  break;
-                                                default:            break;
-                                            }   break;
-                                            // Inside this switch statement it is okay to lowercase the input strings
-                                            // because the input strings themselves are not passed to something important.
-                                            case "s2radio":     switch(value.toLowerCase()) {
-                                                case "building":    searches.get(0).setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
-                                                case "cluster":     searches.get(0).setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
-                                                case "area":        searches.get(0).setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
-                                                case "all":         searches.get(0).setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
-                                                default:            break;
-                                            }   break;
-                                            case "s3radio":     switch(value.toLowerCase()) {
-                                                case "type":        searches.get(0).setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
-                                                case "design":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
-                                                case "floor":       searches.get(0).setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
-                                                case "option":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
-                                                default:            break;
-                                            }   break;
-                                            case "s4radio":     switch(value.toLowerCase()) {
-                                                case "none":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
-                                                case "room_open":   searches.get(0).setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
-                                                case "suite_open":  searches.get(0).setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
-                                                case "type":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
-                                                case "open_double": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
-                                                case "open_triple": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
-                                                default:            break;
-                                            }   break;
-                                            // Here the values are passed along to something case-sensitive
-                                            // so the input strings cannot be lowercased.
-                                            case "process":     searches.get(0).setStep1ProcessSelect(value);   break;
-                                            case "s2select":    searches.get(0).setStep2Select(value);          break;
-                                            case "s3select":    searches.get(0).setStep3Select(value);          break;
-                                            case "s4select":    searches.get(0).setStep4Select(value);          break;
-                                            default:            break;
-                                        }
-                                    }
+                // or if it should keep searching for a better room forever (until quit).
+                boolean searchForever = false;
+                // Default to one search criteria configuration.
+                // If user calls for more configurations, a larger array will be created & copied into.
+                ArrayList<RoomSearch> searches = new ArrayList<>();
+                // Configure only the first search configuration with runtime arguments.
+                // Additional configurations need to be configured in runtime.
+                // Term is relevant to several automators so it is retrieved earlier.
+                searches.add(new RoomSearch());
+                searches.get(0).setStep1TermSelect(term);
+                // Reprocess each command-line argument to find arguments for houser.
+                for(String arg : args) {
+                    String[] argSplit = arg.split("=", 2);
+                    // Only parse the argument if it is splittable, such as "param=value"
+                    if(argSplit.length > 1) {
+                        // Do not alter the input strings, fields may need to be exact (ex. password).
+                        String param = argSplit[0];
+                        String value = argSplit[1];
+                        switch(param.toLowerCase()) {
+                            case "searches":    // Subtract one because one RoomSearch already exists.
+                                int numSearches = Integer.valueOf(value)-1;
+                                // Only make more search criteria if this value is greater than current size.
+                                while(numSearches > 0) {
+                                    searches.add(new RoomSearch());
+                                    numSearches--;
                                 }
-                                SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
-                                spireHousing.run();
-                                break;
+                            case "forever":     switch(value.toLowerCase()) {
+                                case "true":        searchForever = true;   break;
+                                case "false":       searchForever = false;  break;
+                                default:            break;
+                            }   break;
+                            // Inside this switch statement it is okay to lowercase the input strings
+                            // because the input strings themselves are not passed to something important.
+                            case "s2radio":     switch(value.toLowerCase()) {
+                                case "building":    searches.get(0).setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
+                                case "cluster":     searches.get(0).setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
+                                case "area":        searches.get(0).setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
+                                case "all":         searches.get(0).setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
+                                default:            break;
+                            }   break;
+                            case "s3radio":     switch(value.toLowerCase()) {
+                                case "type":        searches.get(0).setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
+                                case "design":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
+                                case "floor":       searches.get(0).setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
+                                case "option":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
+                                default:            break;
+                            }   break;
+                            case "s4radio":     switch(value.toLowerCase()) {
+                                case "none":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
+                                case "room_open":   searches.get(0).setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
+                                case "suite_open":  searches.get(0).setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
+                                case "type":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
+                                case "open_double": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
+                                case "open_triple": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
+                                default:            break;
+                            }   break;
+                            // Here the values are passed along to something case-sensitive
+                            // so the input strings cannot be lowercased.
+                            case "process":     searches.get(0).setStep1ProcessSelect(value);   break;
+                            case "s2select":    searches.get(0).setStep2Select(value);          break;
+                            case "s3select":    searches.get(0).setStep3Select(value);          break;
+                            case "s4select":    searches.get(0).setStep4Select(value);          break;
+                            default:            break;
+                        }
+                    }
+                }
+                SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
+                spireHousing.run();
+                break;
             default:            break;
         }
     }
@@ -461,7 +492,7 @@ public class SpireAutomator {
         } else {
             result = false;
         }
-        LOGGER.info("WebDriver executable path is valid: "+result);
+        LOGGER.info("\""+driverPath+"\" is a valid WebDriver executable path: "+result);
         return result;
     }
 
@@ -478,13 +509,12 @@ public class SpireAutomator {
         return result;
     }
 
-    private static File downloadExecutable(File destDir, OS os, Browser browser) {
-        WebDriverExecutable exec = WebDriverExecutable.getWebDriverExecutable(os, browser);
-        File destFile = new File(destDir, FilenameUtils.getName(exec.getUrl()));
+    private static File downloadExecutable(File destDir, OSBrowser osBrowser) {
+        File destFile = new File(destDir, FilenameUtils.getName(osBrowser.getUrl()));
         try {
-            LOGGER.info("Downloading \""+exec.getUrl()+"\" to \""+destFile.getAbsolutePath()+"\"");
+            LOGGER.info("Downloading \""+osBrowser.getUrl()+"\" to \""+destFile.getAbsolutePath()+"\"");
             // This library function takes care of all of the logistics of downloading from the internet.
-            FileUtils.copyURLToFile(new URL(exec.getUrl()), destFile);
+            FileUtils.copyURLToFile(new URL(osBrowser.getUrl()), destFile);
             if(destFile.exists()) {
                 // Checks if it is a compressed file.
                 switch(FilenameUtils.getExtension(destFile.getAbsolutePath())) {
