@@ -1,18 +1,21 @@
-package autohouser;
+package houser;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
-import spireautomator.UMass;
+import spire.UMass;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class automates the housing selection process
  * on SPIRE.
  */
 public class SpireHousing {
+    protected final static Logger LOGGER = Logger.getLogger("spireautomator.houser");
     private WebDriver driver;
     private ArrayList<RoomSearch> searches;
     private boolean searchForever;
@@ -46,37 +49,51 @@ public class SpireHousing {
     /**
      * This function runs the SpireHousing automation from the point of
      * entering the housing portal to conclusion. It is called by the
-     * {@link spireautomator.SpireAutomator} controller after instantiation.
+     * {@link spire.SpireAutomator} controller after instantiation.
      */
     public void run() {
         // Click on the link that goes to Room Selection Home.
+        LOGGER.info("Clicking CSS selector \""+UMass.HOUSING_LINK_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.HOUSING_LINK_SELECTOR)).click();
         // Click on the Search for a Room button.
+        LOGGER.info("Clicking CSS selector \""+UMass.SEARCH_FOR_ROOM_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.SEARCH_FOR_ROOM_SELECTOR)).click();
 
-        System.out.println("Beginning automated refresh.");
+        LOGGER.info("Beginning automated refresh.");
         long previousTime = System.currentTimeMillis();
         while(!changed || searchForever) {
-            for(RoomSearch curSearch : searches) {
+            RoomSearch curSearch;
+            for(int i = 0; i < searches.size(); i++) {
+                curSearch = searches.get(i);
+//            for(RoomSearch curSearch : searches) {
                 // Enter the current search criteria into the DOM.
+                LOGGER.info("Entering search criteria for search #"+i);
                 enterSearchCriteria(driver, curSearch);
                 // Wait an interval, then click the "Search Now" button after finishing entering search criteria.
+                LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL+" milliseconds.");
                 UMass.sleep(UMass.WAIT_INTERVAL);
+                LOGGER.info("Clicking CSS selector \""+UMass.S5_SEARCH_NOW_SELECTOR+"\"");
                 driver.findElement(By.cssSelector(UMass.S5_SEARCH_NOW_SELECTOR)).click();
                 // Wait an interval to allow the results to load, then begin parsing them.
+                LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL+" milliseconds.");
                 UMass.sleep(UMass.WAIT_INTERVAL);
                 // Parse the results and save them to the current search configuration.
                 curSearch.setResults(parseRooms());
                 //TODO: How to select which room to assign, if multiple?
                 if(false) {
+                    LOGGER.info("Assigning into "+curSearch.getResults().get(0).getBuilding()+" "+
+                            curSearch.getResults().get(0).getNumber()+".");
                     assignRoom(driver, curSearch.getResults().get(0));
                     changed = true;
                 } else {
+                    LOGGER.info("Clicking CSS selector \""+UMass.ROOMS_NEW_SEARCH_SELECTOR+"\"");
                     // Click "New Search" button on results page to return to search page.
                     UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_NEW_SEARCH_SELECTOR)).click();
                 }
                 // If it has been less time than the load interval since the last refresh, wait an extra load interval.
                 if ((System.currentTimeMillis() - previousTime) < UMass.LOAD_INTERVAL) {
+                    LOGGER.info("Not enough time has passed since last page load; sleeping for "+
+                            UMass.LOAD_INTERVAL+" milliseconds.");
                     UMass.sleep(UMass.LOAD_INTERVAL);
                 }
                 // Uncomment this line to show the number of seconds since the last refresh, on every refresh.
@@ -94,20 +111,28 @@ public class SpireHousing {
      * @return          1 if change succeeded, 0 if change failed.
      */
     private void assignRoom(WebDriver driver, Room room) {
+        LOGGER.info("Clicking rooms results table entry "+room.getRow()+"x11");
         UMass.findElementRoomsResults(driver, room.getRow(), 11).click();
         // Select first student in Section I. Students to Assign
+        LOGGER.info("Clicking CSS selector \""+UMass.ASSIGN_SECTION_1_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.ASSIGN_SECTION_1_SELECTOR)).click();
         // Select available assignment in Section II. Available Assignment(s)
+        LOGGER.info("Clicking CSS selector \""+UMass.ASSIGN_SECTION_2_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.ASSIGN_SECTION_2_SELECTOR)).click();
         // Click the Choose button to go to the next page.
+        LOGGER.info("Clicking CSS selector \""+UMass.ASSIGN_CHOOSE_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.ASSIGN_CHOOSE_SELECTOR)).click();
         // Elements on first page have same CSS selectors as elements on second page. Need to wait for page change.
+        LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL+" milliseconds.");
         UMass.sleep(UMass.WAIT_INTERVAL);
         // Select first student in Section I. Students to Assign
+        LOGGER.info("Clicking CSS selector \""+UMass.CONFIRM_SECTION_1_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.CONFIRM_SECTION_1_SELECTOR)).click();
         // Click the Save button to go to the next page.
+        LOGGER.info("Clicking CSS selector \""+UMass.CONFIRM_SAVE_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.CONFIRM_SAVE_SELECTOR)).click();
         // Click the You're Done! Return button to go back to search page.
+        LOGGER.info("Clicking CSS selector \""+UMass.COMPLETE_RETURN_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.COMPLETE_RETURN_SELECTOR)).click();
     }
 
@@ -222,7 +247,10 @@ public class SpireHousing {
             String type =       UMass.findElementRoomsResults(driver, row, 7).getText();
             Room room =         new Room(row, building, number, design, type);
             rooms.add(room);
+            LOGGER.config("area=\""+room.getArea()+"\" building=\""+building+"\" number=\""+number+
+                    "\" design=\""+design+"\" type=\""+type+"\"");
         }
+        LOGGER.info("Found "+rooms.size()+" rooms.");
         return rooms;
     }
 
@@ -443,4 +471,7 @@ public class SpireHousing {
         return curSearch.getStep4Select();
     }
 
+    public void setLevel(Level level) {
+        LOGGER.setLevel(level);
+    }
 }

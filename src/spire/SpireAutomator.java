@@ -1,8 +1,8 @@
-package spireautomator;
+package spire;
 
-import autoenroller.*;
-import autohouser.RoomSearch;
-import autohouser.SpireHousing;
+import enroller.*;
+import houser.RoomSearch;
+import houser.SpireHousing;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -13,14 +13,18 @@ import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariDriver;
 
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -89,7 +93,11 @@ public class SpireAutomator {
     private final static Logger LOGGER = Logger.getLogger("spireautomator");
 
     public static void main(String[] args) {
+        Handler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        LOGGER.addHandler(handler);
         LOGGER.setLevel(Level.OFF);
+        LOGGER.setUseParentHandlers(false);
         OS os = OS.getOS();
         Browser browser = null;
         OSBrowser osBrowser = null;
@@ -158,7 +166,11 @@ public class SpireAutomator {
         LOGGER.config("URL = \""+UMass.SPIRE_HOME_URL+"\"");
         LOGGER.config("Automator = \""+automator+"\"");
         LOGGER.config("Username = \""+username+"\"");
-        LOGGER.config("Password = \""+password+"\"");
+        if(password == null || password.equals("")) {
+            LOGGER.config("Password = \""+password+"\"");
+        } else {
+            LOGGER.config("Password = SET BUT NOT SHOWN");
+        }
         LOGGER.config("Term = \""+term+"\"");
 
         // Keep repeating until the user selects a browser that is known to be available for their OS.
@@ -188,27 +200,44 @@ public class SpireAutomator {
                 driverPath = downloadExecutable(tempDir, osBrowser);
             }
         }
+        // DesiredCapabilities sets certain configurations to the Selenium WebDriver, such as suppressing logs to stdout.
+        DesiredCapabilities dc;
         // Now set system properties and construct driver.
         switch(browser) {
             case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.chrome.driver\"=\""+System.getProperty("webdriver.chrome.driver")+"\"");
-                            driver = new ChromeDriver();
+                            // If the logging level is less verbose than INFO, construct a silent ChromeDriver.
+                            if(LOGGER.getLevel().intValue() >= Level.INFO.intValue()) {
+                                ChromeDriverService service = new ChromeDriverService.Builder()
+                                        .usingAnyFreePort().withSilent(true).build();
+                                driver = new ChromeDriver(service);
+                            } else {
+                                driver = new ChromeDriver();
+                            }
                             break;
             case FIREFOX:   System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.gecko.driver\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
-                            driver = new FirefoxDriver();
+                            dc = DesiredCapabilities.firefox();
+                            dc.setCapability("silent", true);
+                            driver = new FirefoxDriver(dc);
                             break;
             case IE:        System.setProperty("webdriver.ie.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.ie.driver\"=\""+System.getProperty("webdriver.ie.driver")+"\"");
-                            driver = new InternetExplorerDriver();
+                            dc = DesiredCapabilities.internetExplorer();
+                            dc.setCapability("silent", true);
+                            driver = new InternetExplorerDriver(dc);
                             break;
             case EDGE:      System.setProperty("webdriver.edge.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.edge.driver\"=\""+System.getProperty("webdriver.edge.driver")+"\"");
-                            driver = new EdgeDriver();
+                            dc = DesiredCapabilities.edge();
+                            dc.setCapability("silent", true);
+                            driver = new EdgeDriver(dc);
                             break;
             case SAFARI:    //System.setProperty("SELENIUM_SERVER_JAR", driverPath.getAbsolutePath()); // Environment variable may not be necessary on Safari 10+, have not yet tested.
                             //LOGGER.info("Environment variable set \"SELENIUM_SERVER_JAR\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
-                            driver = new SafariDriver();
+                            dc = DesiredCapabilities.safari();
+                            dc.setCapability("silent", true);
+                            driver = new SafariDriver(dc);
                             break;
             default:        break;
         }
@@ -238,11 +267,19 @@ public class SpireAutomator {
                 }
             }
             // Explicitly waits for the Username field to load and types username.
+            LOGGER.info("Typing \""+username+"\" into ID \""+UMass.USERNAME_ID+"\"");
             UMass.waitForElement(driver, By.id(UMass.USERNAME_ID)).sendKeys(username);
             // Presence of Username means Password and Go button are loaded too.
+            if(password == null || password.equals("")) {
+                LOGGER.info("Typing \""+password+"\" into ID \""+UMass.PASSWORD_ID+"\"");
+            } else {
+                LOGGER.info("Typing the password into ID \""+UMass.PASSWORD_ID+"\"");
+            }
             driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(password);
+            LOGGER.info("Clicking CSS selector \""+UMass.LOGIN_BUTTON_SELECTOR+"\"");
             driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();
-            UMass.sleep(1000);
+            LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL*2+" milliseconds.");
+            UMass.sleep(UMass.WAIT_INTERVAL*2);
             // The page will be "SPIRE Logon" as long as the user is not logged in.
             // Repeat until the page has changed, assuming that means the user is successfully logged in.
         } while(driver.getTitle().equals("SPIRE Logon"));
@@ -251,12 +288,15 @@ public class SpireAutomator {
         // The subwebpage's code is hard to access while it is nested.
         // This line explicitly waits until the internal frame is present
         // and then loads it into the driver as the main webpage.
+        LOGGER.info("Loading \"iframe\" into the driver.");
         driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
         // Wait in case there is an error popup (seen on Firefox, not Chrome).
+        LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL+" milliseconds.");
         UMass.sleep(UMass.WAIT_INTERVAL);
 
         // If no preferred automator was provided, prompt for one.
         while(automator == null) {
+            LOGGER.info("Prompting user for automator.");
             System.out.println("Automator?\n1: Enroller\n2: Houser");
             switch(new Scanner(System.in).nextInt()) {
                 case 1:     automator = Automator.ENROLLER;   break;
@@ -266,14 +306,17 @@ public class SpireAutomator {
         }
         // Go into the appropriate automator program.
         switch(automator) {
-            case ENROLLER:      Map<String, Lecture> currentSchedule = new HashMap<>();
+            case ENROLLER:      LOGGER.info("Constructing enroller configuration.");
+                Map<String, Lecture> currentSchedule = new HashMap<>();
                 Map<String, Lecture> shoppingCart = new HashMap<>();
                 ArrayList<Action> actions = new ArrayList<>();
                 setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
                 SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
+                LOGGER.info("Running enroller with "+actions.size()+" actions.");
                 spireEnrollment.run();
                 break;
-            case HOUSER:        // Used to indicate if the automator should quit after making one housing change,
+            case HOUSER:        LOGGER.info("Constructing houser configuration.");
+                // Used to indicate if the automator should quit after making one housing change,
                 // or if it should keep searching for a better room forever (until quit).
                 boolean searchForever = false;
                 // Default to one search criteria configuration.
@@ -340,7 +383,18 @@ public class SpireAutomator {
                         }
                     }
                 }
+                LOGGER.config("searchForever = \""+searchForever+"\"");
+                LOGGER.config("step1TermSelect = \""+searches.get(0).getStep1TermSelect()+"\"");
+                LOGGER.config("step1ProcessSelect = \""+searches.get(0).getStep1ProcessSelect()+"\"");
+                LOGGER.config("step2Radio = \""+searches.get(0).getStep2Radio()+"\"");
+                LOGGER.config("step2Select = \""+searches.get(0).getStep2Select()+"\"");
+                LOGGER.config("step3Radio = \""+searches.get(0).getStep3Radio()+"\"");
+                LOGGER.config("step3Select = \""+searches.get(0).getStep3Select()+"\"");
+                LOGGER.config("step4Radio = \""+searches.get(0).getStep4Radio()+"\"");
+                LOGGER.config("step4Select = \""+searches.get(0).getStep4Select()+"\"");
                 SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
+                spireHousing.setLevel(LOGGER.getLevel());
+                LOGGER.info("Running houser with "+searches.size()+" searches.");
                 spireHousing.run();
                 break;
             default:            break;
@@ -680,7 +734,7 @@ public class SpireAutomator {
         System.out.println("There are no runtime arguments needed for the enrollment automator.");
         System.out.println("Enroller configurations must be hardcoded and passed to the automator.");
         System.out.println("An editable example of enroller configurations may be found in:");
-        System.out.println("\tspireautomator.SpireAutomator.setEnrollerConfiguration()");
+        System.out.println("\tspire.SpireAutomator.setEnrollerConfiguration()");
         System.out.println(getHeaderSeparator("HOUSER", separatorLength));
         System.out.println("The houser automates the process of searching for and assigning oneself to a room in SPIRE.");
         System.out.println("The houser is capable of searching for rooms using the same search criteria that the main");

@@ -1,6 +1,6 @@
-package spireautomator;
+package spire;
 
-import autoenroller.SpireEnrollment;
+import enroller.SpireEnrollment;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -8,10 +8,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The constants that identify {@link org.openqa.selenium.WebElement}s
@@ -300,14 +297,15 @@ public class UMass {
     }
 
     public static boolean isElementFound(WebDriver driver, int timeoutSeconds, By by) {
+        boolean result = false;
         try {
             if(waitForElement(driver, timeoutSeconds, by) != null) {
-                return true;
+                result = true;
             }
         } catch(TimeoutException timeout) {
-        } finally {
-            return false;
+            result = false;
         }
+        return result;
     }
 
     public static void sleep(int millis) {

@@ -1,8 +1,8 @@
-package autoenroller;
+package enroller;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import spireautomator.UMass;
+import spire.UMass;
 
 /**
  * Classes may be {@link Lecture}s or {@link Discussion}s.

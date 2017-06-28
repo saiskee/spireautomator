@@ -1,9 +1,9 @@
-package autoenroller;
+package enroller;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.Select;
-import spireautomator.UMass;
+import spire.UMass;
 
 import java.util.*;
 
@@ -51,7 +51,7 @@ public class SpireEnrollment {
     /**
      * This function runs the SpireEnrollment automation from the point of
      * entering the enrollment portal to conclusion. It is called by the
-     * {@link spireautomator.SpireAutomator} controller after instantiation
+     * {@link spire.SpireAutomator} controller after instantiation
      * and adding the schedule, shopping cart, and actions.
      */
     public void run() {

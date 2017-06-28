@@ -1,4 +1,4 @@
-package autoenroller;
+package enroller;
 
 /**
  * A Condition only exists to be checked if it is met.

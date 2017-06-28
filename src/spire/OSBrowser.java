@@ -1,4 +1,4 @@
-package spireautomator;
+package spire;
 
 /**
  * Executable functionality tested on:
