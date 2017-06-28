@@ -73,7 +73,7 @@ public class SpireAutomator {
                     "2: Mozilla Firefox\n" +
                     "3: Internet Explorer\n" +
                     "4: Microsoft Edge\n" +
-                    "5: Safari");
+                    "5: Apple Safari");
             switch(new Scanner(System.in).nextInt()) {
                 case 1:     result = CHROME;    break;
                 case 2:     result = FIREFOX;   break;
@@ -86,7 +86,7 @@ public class SpireAutomator {
         }
     }
 
-    private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    private final static Logger LOGGER = Logger.getLogger("spireautomator");
 
     public static void main(String[] args) {
         LOGGER.setLevel(Level.OFF);
@@ -132,7 +132,7 @@ public class SpireAutomator {
                             case "all":     LOGGER.setLevel(Level.ALL);     break;
                             default:        break;
                         }   break;
-                        case "driver_path": driverPath = new File(value);           break;
+                        case "driver":      driverPath = new File(value);           break;
                         case "browser":     browser = Browser.getBrowser(value);    break;
                         case "url":         UMass.SPIRE_HOME_URL = value;           break;
                         case "username":    username = value;                       break;
@@ -149,6 +149,7 @@ public class SpireAutomator {
             // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
 
+        LOGGER.info(args.length+" argument(s): "+Arrays.toString(args));
         LOGGER.config("Logging level = \""+LOGGER.getLevel().toString()+"\"");
         LOGGER.config("Operating system = \""+os.name()+"\"");
         LOGGER.config("Browser = "+browser+"\"");
@@ -664,8 +665,9 @@ public class SpireAutomator {
         System.out.println("\tjava -jar spireautomator.jar \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
         System.out.println(getHeaderSeparator("GENERAL", separatorLength));
         System.out.println("The following are runtime arguments used universally by all automators:");
-        System.out.println("\tdriver");
         System.out.println("\tlogging=[off, severe, warning, info, config, all]");
+        System.out.println("\tbrowser=[chrome, firefox, internetexplorer, edge, safari]");
+        System.out.println("\tdriver");
         System.out.println("\ttimeout=[>0]");
         System.out.println("\turl");
         System.out.println("\tautomator=[enroller, houser]");
@@ -687,7 +689,7 @@ public class SpireAutomator {
         System.out.println("The automator will prompt the user for input if a value is needed but not set.");
         System.out.println("The following arguments are used by this automator:");
         System.out.println("\tsearches=[>1]");
-        System.out.println("\tforever=[true,false]");
+        System.out.println("\tforever=[true, false]");
         System.out.println("\tprocess");
         System.out.println("\ts2radio=[building, cluster, area, all]");
         System.out.println("\ts2select");
