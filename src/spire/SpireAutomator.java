@@ -66,6 +66,7 @@ public class SpireAutomator {
                 case "internetexplorer":    result = IE;        break;
                 case "edge":                result = EDGE;      break;
                 case "microsoftedge":       result = EDGE;      break;
+                case "safari":              result = SAFARI;    break;
                 default:        break;
             }
             return result;
@@ -88,6 +89,60 @@ public class SpireAutomator {
             }
             return result;
         }
+    }
+
+    public enum OSBrowser {
+        WIN_CHROME("https://chromedriver.storage.googleapis.com/2.30/chromedriver_win32.zip"),
+        MAC_CHROME("https://chromedriver.storage.googleapis.com/2.30/chromedriver_mac64.zip"),
+        NIX_CHROME("https://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip"),
+        WIN_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-win32.zip"),
+        MAC_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-macos.tar.gz"),
+        NIX_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-linux64.tar.gz"),
+        WIN_IE("http://selenium-release.storage.googleapis.com/3.4/IEDriverServer_Win32_3.4.0.zip"),
+        WIN_EDGE("https://download.microsoft.com/download/3/4/2/342316D7-EBE0-4F10-ABA2-AE8E0CDF36DD/MicrosoftWebDriver.exe"),
+        MAC_SAFARI("");
+
+        private final String url;
+
+        OSBrowser(String url) {
+            this.url = url;
+        }
+
+        public static OSBrowser getOsBrowser(OS os, Browser browser) {
+            OSBrowser result = null;
+            switch(os) {
+                case WIN:   switch(browser){
+                    case CHROME:    result = WIN_CHROME;    break;
+                    case FIREFOX:   result = WIN_FIREFOX;   break;
+                    case IE:        result = WIN_IE;        break;
+                    case EDGE:      result = WIN_EDGE;      break;
+                    case SAFARI:    result = null;          break;
+                }   break;
+                case MAC:   switch(browser){
+                    case CHROME:    result = MAC_CHROME;    break;
+                    case FIREFOX:   result = MAC_FIREFOX;   break;
+                    case IE:        result = null;          break;
+                    case EDGE:      result = null;          break;
+                    case SAFARI:    result = MAC_SAFARI;    break;
+                }   break;
+                case NIX:   switch(browser){
+                    case CHROME:    result = NIX_CHROME;    break;
+                    case FIREFOX:   result = NIX_FIREFOX;   break;
+                    case IE:        result = null;          break;
+                    case EDGE:      result = null;          break;
+                    case SAFARI:    result = null;          break;
+                }   break;
+            }
+            return result;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
+    public enum Automator {
+        ENROLLER, HOUSER
     }
 
     private final static Logger LOGGER = Logger.getLogger("spireautomator");
