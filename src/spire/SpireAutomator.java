@@ -51,6 +51,7 @@ public class SpireAutomator {
             return result;
         }
     }
+
     public enum Browser {
         CHROME, FIREFOX, IE, EDGE, SAFARI;
         private static Browser getBrowser(String input) {
@@ -170,6 +171,7 @@ public class SpireAutomator {
                 String[] argSplit = arg.split("=", 2);
                 // Only parse the argument if it is splittable, such as "param=value"
                 if(argSplit.length > 1) {
+                    LOGGER.info("Parameter/value pair \""+arg+"\" split at \"=\": parameter=\""+argSplit[0]+"\" value=\""+argSplit[1]+"\"");
                     // Do not alter the input strings, fields may need to be exact (ex. password).
                     String param = argSplit[0];
                     String value = argSplit[1];
@@ -179,14 +181,14 @@ public class SpireAutomator {
                             case "houser":      automator = Automator.HOUSER;   break;
                             default:            break;
                         }   break;
-                        case "timeout":     try {
-                            int timeout = Integer.valueOf(value);
-                            if(timeout > 0) {
-                                UMass.TIMEOUT_INTERVAL = timeout;
-                            }
-                        } catch(NumberFormatException e) {
-                            LOGGER.warning(e.getMessage());
-                        }   break;
+                        case "timeout":     int timeout = UMass.tryToInt(value);
+                                            if(timeout > 0) {
+                                                UMass.TIMEOUT_INTERVAL = timeout;
+                                            }   break;
+                        case "wait":        int wait = UMass.tryToInt(value);
+                                            if(wait > 0) {
+                                                UMass.WAIT_INTERVAL = wait;
+                                            }   break;
                         case "logging":     switch(value.trim().toLowerCase()) {
                             case "off":     LOGGER.setLevel(Level.OFF);     break;
                             case "severe":  LOGGER.setLevel(Level.SEVERE);  break;
@@ -389,9 +391,31 @@ public class SpireAutomator {
                     String[] argSplit = arg.split("=", 2);
                     // Only parse the argument if it is splittable, such as "param=value"
                     if(argSplit.length > 1) {
+                        LOGGER.info("Parameter/value pair \""+arg+"\" split at \"=\": parameter=\""+argSplit[0]+"\" value=\""+argSplit[1]+"\"");
                         // Do not alter the input strings, fields may need to be exact (ex. password).
                         String param = argSplit[0];
                         String value = argSplit[1];
+                        String[] paramSplit = param.split("-", 2);
+                        int index = 0;
+                        Map indexMap = new HashMap<String, Integer>();
+                        if(paramSplit.length > 1) {
+                            LOGGER.info("Index/parameter pair \""+param+"\" split at \"-\": index=\""+paramSplit[0]+"\" parameter=\""+paramSplit[1]+"\"");
+                            // TODO: All mappings go to 0.
+                            indexMap.put(paramSplit[0], indexMap.size());
+                            LOGGER.info("Index map \""+paramSplit[0]+"\" -> "+indexMap.get(paramSplit[0]));
+                            index = (int) indexMap.get(paramSplit[0]);
+                            param = paramSplit[1];
+                        }
+                        try {
+                            RoomSearch searchesIndex = searches.get(index);
+                            if(searchesIndex == null) {
+                                LOGGER.info("Room search configuration number "+index+" does not yet exist. Constructing.");
+                                searches.set(index, new RoomSearch());
+                            }
+                        } catch(IndexOutOfBoundsException e) {
+                            LOGGER.warning("Room search configuration number "+index+" out of bounds. Constructing.");
+                            searches.set(index, new RoomSearch());
+                        }
                         switch(param.toLowerCase()) {
                             case "searches":    // Subtract one because one RoomSearch already exists.
                                 int numSearches = Integer.valueOf(value)-1;
@@ -408,47 +432,49 @@ public class SpireAutomator {
                             // Inside this switch statement it is okay to lowercase the input strings
                             // because the input strings themselves are not passed to something important.
                             case "s2radio":     switch(value.toLowerCase()) {
-                                case "building":    searches.get(0).setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
-                                case "cluster":     searches.get(0).setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
-                                case "area":        searches.get(0).setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
-                                case "all":         searches.get(0).setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
+                                case "building":    searches.get(index).setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
+                                case "cluster":     searches.get(index).setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
+                                case "area":        searches.get(index).setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
+                                case "all":         searches.get(index).setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
                                 default:            break;
                             }   break;
                             case "s3radio":     switch(value.toLowerCase()) {
-                                case "type":        searches.get(0).setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
-                                case "design":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
-                                case "floor":       searches.get(0).setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
-                                case "option":      searches.get(0).setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
+                                case "type":        searches.get(index).setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
+                                case "design":      searches.get(index).setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
+                                case "floor":       searches.get(index).setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
+                                case "option":      searches.get(index).setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
                                 default:            break;
                             }   break;
                             case "s4radio":     switch(value.toLowerCase()) {
-                                case "none":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
-                                case "room_open":   searches.get(0).setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
-                                case "suite_open":  searches.get(0).setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
-                                case "type":        searches.get(0).setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
-                                case "open_double": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
-                                case "open_triple": searches.get(0).setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
+                                case "none":        searches.get(index).setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
+                                case "room_open":   searches.get(index).setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
+                                case "suite_open":  searches.get(index).setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
+                                case "type":        searches.get(index).setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
+                                case "open_double": searches.get(index).setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
+                                case "open_triple": searches.get(index).setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
                                 default:            break;
                             }   break;
                             // Here the values are passed along to something case-sensitive
                             // so the input strings cannot be lowercased.
-                            case "process":     searches.get(0).setStep1ProcessSelect(value);   break;
-                            case "s2select":    searches.get(0).setStep2Select(value);          break;
-                            case "s3select":    searches.get(0).setStep3Select(value);          break;
-                            case "s4select":    searches.get(0).setStep4Select(value);          break;
+                            case "process":     searches.get(index).setStep1ProcessSelect(value);   break;
+                            case "s2select":    searches.get(index).setStep2Select(value);          break;
+                            case "s3select":    searches.get(index).setStep3Select(value);          break;
+                            case "s4select":    searches.get(index).setStep4Select(value);          break;
                             default:            break;
                         }
                     }
                 }
                 LOGGER.config("searchForever = \""+searchForever+"\"");
-                LOGGER.config("step1TermSelect = \""+searches.get(0).getStep1TermSelect()+"\"");
-                LOGGER.config("step1ProcessSelect = \""+searches.get(0).getStep1ProcessSelect()+"\"");
-                LOGGER.config("step2Radio = \""+searches.get(0).getStep2Radio()+"\"");
-                LOGGER.config("step2Select = \""+searches.get(0).getStep2Select()+"\"");
-                LOGGER.config("step3Radio = \""+searches.get(0).getStep3Radio()+"\"");
-                LOGGER.config("step3Select = \""+searches.get(0).getStep3Select()+"\"");
-                LOGGER.config("step4Radio = \""+searches.get(0).getStep4Radio()+"\"");
-                LOGGER.config("step4Select = \""+searches.get(0).getStep4Select()+"\"");
+                for(int i = 0; i < searches.size(); i++) {
+                    LOGGER.config(i+"-step1TermSelect = \""+searches.get(i).getStep1TermSelect()+"\"");
+                    LOGGER.config(i+"-step1ProcessSelect = \""+searches.get(i).getStep1ProcessSelect()+"\"");
+                    LOGGER.config(i+"-step2Radio = \""+searches.get(i).getStep2Radio()+"\"");
+                    LOGGER.config(i+"-step2Select = \""+searches.get(i).getStep2Select()+"\"");
+                    LOGGER.config(i+"-step3Radio = \""+searches.get(i).getStep3Radio()+"\"");
+                    LOGGER.config(i+"-step3Select = \""+searches.get(i).getStep3Select()+"\"");
+                    LOGGER.config(i+"-step4Radio = \""+searches.get(i).getStep4Radio()+"\"");
+                    LOGGER.config(i+"-step4Select = \""+searches.get(i).getStep4Select()+"\"");
+                }
                 SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
                 spireHousing.setLevel(LOGGER.getLevel());
                 LOGGER.info("Running houser with "+searches.size()+" searches.");
@@ -499,7 +525,7 @@ public class SpireAutomator {
         Swap swap_compsci326_01_compsci320_01 = (Swap) new Swap(compsci326_01, compsci320_01).addCondition(new Condition() {
             @Override
             public boolean isMet() {
-                return currentSchedule.get(compsci320_01) != null
+                return currentSchedule.get(compsci320_01.getClassId()) != null
                         && compsci326_01.isOpen(driver) == UMass.TRUE;
             }
             @Override
@@ -779,7 +805,8 @@ public class SpireAutomator {
         System.out.println("\tlogging=[off, severe, warning, info, config, all]");
         System.out.println("\tbrowser=[chrome, firefox, internetexplorer, edge, safari]");
         System.out.println("\tdriver");
-        System.out.println("\ttimeout=[>0]");
+        System.out.println("\ttimeout=[seconds > 0]");
+        System.out.println("\twait=[milliseconds > 0]");
         System.out.println("\turl");
         System.out.println("\tautomator=[enroller, houser]");
         System.out.println("\tusername");
@@ -798,16 +825,20 @@ public class SpireAutomator {
         System.out.println("\tSPIRE website provides, parsing the available rooms, determining whether an available room");
         System.out.println("\tis better than the room currently assigned to the user, and assigning oneself to the room.");
         System.out.println("The automator will prompt the user for input if a value is needed but not set.");
+        System.out.println("Parameters with a prefix of \"[00-]\" may be set for a specific room search configuration index.");
+        System.out.println("\tFor example, to set \"s2radio=building\" for the third configuration, the argument would be");
+        System.out.println("\t\"3-s2radio=building\". Indices start at 0 and must be >=0. Prefixes are optional.");
+        System.out.println("\tIf the prefix is not included, the parameter will be set for configuration at index 0.");
         System.out.println("The following arguments are used by this automator:");
         System.out.println("\tsearches=[>1]");
         System.out.println("\tforever=[true, false]");
-        System.out.println("\tprocess");
-        System.out.println("\ts2radio=[building, cluster, area, all]");
-        System.out.println("\ts2select");
-        System.out.println("\ts3radio=[type, design, floor, option]");
-        System.out.println("\ts3select");
-        System.out.println("\ts4radio=[none, room_open, suite_open, type, open_double, open_triple]");
-        System.out.println("\ts4select");
+        System.out.println("\t[00-]process");
+        System.out.println("\t[00-]s2radio=[building, cluster, area, all]");
+        System.out.println("\t[00-]s2select");
+        System.out.println("\t[00-]s3radio=[type, design, floor, option]");
+        System.out.println("\t[00-]s3select");
+        System.out.println("\t[00-]s4radio=[none, room_open, suite_open, type, open_double, open_triple]");
+        System.out.println("\t[00-]s4select");
         System.exit(0);
     }
 

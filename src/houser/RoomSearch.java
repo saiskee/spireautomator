@@ -82,15 +82,15 @@ public class RoomSearch {
         return results;
     }
 
-    public void setStep2Radio(RoomSearch.Step2Radio step2Radio) {
+    public void setStep2Radio(Step2Radio step2Radio) {
         this.step2Radio = step2Radio;
     }
 
-    public void setStep3Radio(RoomSearch.Step3Radio step3Radio) {
+    public void setStep3Radio(Step3Radio step3Radio) {
         this.step3Radio = step3Radio;
     }
 
-    public void setStep4Radio(RoomSearch.Step4Radio step4Radio) {
+    public void setStep4Radio(Step4Radio step4Radio) {
         this.step4Radio = step4Radio;
     }
 

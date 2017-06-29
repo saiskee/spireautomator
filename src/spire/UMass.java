@@ -90,8 +90,8 @@ public class UMass {
     public static final int TRUE = 1;
     public static final int FALSE = 0;
     public static final int NOT_FOUND = -1;
-    public static final int WAIT_INTERVAL = 500;
-    public static final int LOAD_INTERVAL = 5000;
+    public static int WAIT_INTERVAL = 500;
+    public static int LOAD_INTERVAL = 5000;
     public static int TIMEOUT_INTERVAL = 10;
 
 

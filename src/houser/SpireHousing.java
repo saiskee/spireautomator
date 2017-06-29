@@ -65,7 +65,6 @@ public class SpireHousing {
             RoomSearch curSearch;
             for(int i = 0; i < searches.size(); i++) {
                 curSearch = searches.get(i);
-//            for(RoomSearch curSearch : searches) {
                 // Enter the current search criteria into the DOM.
                 LOGGER.info("Entering search criteria for search #"+i);
                 enterSearchCriteria(driver, curSearch);
