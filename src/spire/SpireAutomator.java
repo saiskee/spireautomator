@@ -141,7 +141,9 @@ public class SpireAutomator {
                             default:        break;
                         }   break;
                         case "driver":      driverPath = new File(value);           break;
-                        case "browser":     browser = Browser.getBrowser(value);    break;
+                        case "browser":     browser = Browser.getBrowser(value);
+                                            osBrowser = OSBrowser.getOsBrowser(os, browser);
+                                            break;
                         case "url":         UMass.SPIRE_HOME_URL = value;           break;
                         case "username":    username = value;                       break;
                         case "password":    password = value;                       break;
