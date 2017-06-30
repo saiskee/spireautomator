@@ -387,6 +387,8 @@ public class SpireAutomator {
                 searches.add(new RoomSearch());
                 searches.get(0).setStep1TermSelect(term);
                 // Reprocess each command-line argument to find arguments for houser.
+                Map<String, Integer>  indexMap = new HashMap<>();
+                int index = 0;
                 for(String arg : args) {
                     String[] argSplit = arg.split("=", 2);
                     // Only parse the argument if it is splittable, such as "param=value"
@@ -396,26 +398,21 @@ public class SpireAutomator {
                         String param = argSplit[0];
                         String value = argSplit[1];
                         String[] paramSplit = param.split("-", 2);
-                        int index = 0;
-                        Map indexMap = new HashMap<String, Integer>();
                         if(paramSplit.length > 1) {
                             LOGGER.info("Index/parameter pair \""+param+"\" split at \"-\": index=\""+paramSplit[0]+"\" parameter=\""+paramSplit[1]+"\"");
-                            // TODO: All mappings go to 0.
-                            indexMap.put(paramSplit[0], indexMap.size());
-                            LOGGER.info("Index map \""+paramSplit[0]+"\" -> "+indexMap.get(paramSplit[0]));
-                            index = (int) indexMap.get(paramSplit[0]);
+                            if(!indexMap.containsKey(paramSplit[0])) {
+                                LOGGER.info("Adding new index mapping \""+paramSplit[0]+"\" -> \""+indexMap.size());
+                                indexMap.put(paramSplit[0], indexMap.size());
+                            }
+                            index = indexMap.get(paramSplit[0]);
+                            LOGGER.info("Index map found \""+paramSplit[0]+"\" -> "+index);
                             param = paramSplit[1];
                         }
-                        try {
-                            RoomSearch searchesIndex = searches.get(index);
-                            if(searchesIndex == null) {
-                                LOGGER.info("Room search configuration number "+index+" does not yet exist. Constructing.");
-                                searches.set(index, new RoomSearch());
-                            }
-                        } catch(IndexOutOfBoundsException e) {
-                            LOGGER.warning("Room search configuration number "+index+" out of bounds. Constructing.");
-                            searches.set(index, new RoomSearch());
+                        while(index > searches.size()-1) {
+                            LOGGER.info("Creating new room search configuration at index "+index);
+                            searches.add(new RoomSearch());
                         }
+                        RoomSearch curSearch = searches.get(index);
                         switch(param.toLowerCase()) {
                             case "searches":    // Subtract one because one RoomSearch already exists.
                                 int numSearches = Integer.valueOf(value)-1;
@@ -618,14 +615,14 @@ public class SpireAutomator {
             String ext = FilenameUtils.getExtension(driverPath.getName());
             switch(os) {
                 case WIN:   if(ext.equals("exe")) {
-                                result = isDriverBrowserValid(browser, driverPath.getName());
-                            }   break;
+                    result = isDriverBrowserValid(browser, driverPath.getName());
+                }   break;
                 case MAC:   if(!ext.equals("exe")) {
-                                result = isDriverBrowserValid(browser, driverPath.getName());
-                            }   break;
+                    result = isDriverBrowserValid(browser, driverPath.getName());
+                }   break;
                 case NIX:   if(!ext.equals("exe")) {
-                                result = isDriverBrowserValid(browser, driverPath.getName());
-                            }   break;
+                    result = isDriverBrowserValid(browser, driverPath.getName());
+                }   break;
             }
         } else {
             result = false;
