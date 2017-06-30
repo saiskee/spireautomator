@@ -304,15 +304,17 @@ public class SpireAutomator {
         // Go to the target website in the browser. Default is UMass SPIRE homepage.
         driver.get(UMass.SPIRE_HOME_URL);
         LOGGER.info("Driver going to \""+driver.getCurrentUrl()+"\"");
+        // Boolean used to reprompt user for username/password in case the provided credentials did not progress page.
+        boolean loginAttempted = false;
         do {
             // If no username was provided, prompt for one.
-            if(username == null) {
+            if(username == null || loginAttempted) {
                 LOGGER.info("Prompting user for username.");
                 System.out.println("Username?");
                 username = new Scanner(System.in).nextLine();
             }
             // If no password was provided, prompt for one.
-            if(password == null) {
+            if(password == null || loginAttempted) {
                 LOGGER.info("Prompting user for password.");
                 System.out.println("Password?");
                 Console console = System.console();
@@ -339,6 +341,7 @@ public class SpireAutomator {
             driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();
             LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL*2+" milliseconds.");
             UMass.sleep(UMass.WAIT_INTERVAL*2);
+            loginAttempted = true;
             // The page will be "SPIRE Logon" as long as the user is not logged in.
             // Repeat until the page has changed, assuming that means the user is successfully logged in.
         } while(driver.getTitle().equals("SPIRE Logon"));

@@ -240,14 +240,18 @@ public class SpireHousing {
         // Gets the size of the rooms search results table and iterates over each row.
         // Skips the first row; it's just header labels, -3 due to non-room rows.
         for(int row = 1; row < UMass.waitForElement(driver, By.cssSelector(UMass.ROOMS_RESULTS_SELECTOR)).findElements(By.tagName("tr")).size()-3; row++) {
-            String building =   UMass.findElementRoomsResults(driver, row, 1).getText();
-            String number =     UMass.findElementRoomsResults(driver, row, 2).getText();
-            String design =     UMass.findElementRoomsResults(driver, row, 6).getText();
-            String type =       UMass.findElementRoomsResults(driver, row, 7).getText();
-            Room room =         new Room(row, building, number, design, type);
-            rooms.add(room);
-            LOGGER.config("area=\""+room.getArea()+"\" building=\""+building+"\" number=\""+number+
-                    "\" design=\""+design+"\" type=\""+type+"\"");
+            // Checks the Room Vacancies cell to make sure this room has non-zero vacancies.
+            // Used to indicate if the possibly only row is actually a blank result, ex. no rooms in query.
+            if(!UMass.findElementRoomsResults(driver, row, 9).getText().trim().equals("0")) {
+                String building =   UMass.findElementRoomsResults(driver, row, 1).getText().trim();
+                String number =     UMass.findElementRoomsResults(driver, row, 2).getText().trim();
+                String design =     UMass.findElementRoomsResults(driver, row, 6).getText().trim();
+                String type =       UMass.findElementRoomsResults(driver, row, 7).getText().trim();
+                Room room =         new Room(row, building, number, design, type);
+                rooms.add(room);
+                LOGGER.config("area=\""+room.getArea()+"\" building=\""+building+"\" number=\""+number+
+                        "\" design=\""+design+"\" type=\""+type+"\"");
+            }
         }
         LOGGER.info("Found "+rooms.size()+" rooms.");
         return rooms;
