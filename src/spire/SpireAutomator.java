@@ -366,117 +366,117 @@ public class SpireAutomator {
         // Go into the appropriate automator program.
         switch(automator) {
             case ENROLLER:      LOGGER.info("Constructing enroller configuration.");
-                Map<String, Lecture> currentSchedule = new HashMap<>();
-                Map<String, Lecture> shoppingCart = new HashMap<>();
-                ArrayList<Action> actions = new ArrayList<>();
-                setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
-                SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
-                LOGGER.info("Running enroller with "+actions.size()+" actions.");
-                spireEnrollment.run();
-                break;
+                                Map<String, Lecture> currentSchedule = new HashMap<>();
+                                Map<String, Lecture> shoppingCart = new HashMap<>();
+                                ArrayList<Action> actions = new ArrayList<>();
+                                setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
+                                SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
+                                LOGGER.info("Running enroller with "+actions.size()+" actions.");
+                                spireEnrollment.run();
+                                break;
             case HOUSER:        LOGGER.info("Constructing houser configuration.");
-                // Used to indicate if the automator should quit after making one housing change,
-                // or if it should keep searching for a better room forever (until quit).
-                boolean searchForever = false;
-                // Default to one search criteria configuration.
-                // If user calls for more configurations, a larger array will be created & copied into.
-                ArrayList<RoomSearch> searches = new ArrayList<>();
-                // Configure only the first search configuration with runtime arguments.
-                // Additional configurations need to be configured in runtime.
-                // Term is relevant to several automators so it is retrieved earlier.
-                searches.add(new RoomSearch());
-                searches.get(0).setStep1TermSelect(term);
-                // Reprocess each command-line argument to find arguments for houser.
-                Map<String, Integer>  indexMap = new HashMap<>();
-                int index = 0;
-                for(String arg : args) {
-                    String[] argSplit = arg.split("=", 2);
-                    // Only parse the argument if it is splittable, such as "param=value"
-                    if(argSplit.length > 1) {
-                        LOGGER.info("Parameter/value pair \""+arg+"\" split at \"=\": parameter=\""+argSplit[0]+"\" value=\""+argSplit[1]+"\"");
-                        // Do not alter the input strings, fields may need to be exact (ex. password).
-                        String param = argSplit[0];
-                        String value = argSplit[1];
-                        String[] paramSplit = param.split("-", 2);
-                        if(paramSplit.length > 1) {
-                            LOGGER.info("Index/parameter pair \""+param+"\" split at \"-\": index=\""+paramSplit[0]+"\" parameter=\""+paramSplit[1]+"\"");
-                            if(!indexMap.containsKey(paramSplit[0])) {
-                                LOGGER.info("Adding new index mapping \""+paramSplit[0]+"\" -> \""+indexMap.size());
-                                indexMap.put(paramSplit[0], indexMap.size());
-                            }
-                            index = indexMap.get(paramSplit[0]);
-                            LOGGER.info("Index map found \""+paramSplit[0]+"\" -> "+index);
-                            param = paramSplit[1];
-                        }
-                        while(index > searches.size()-1) {
-                            LOGGER.info("Creating new room search configuration at index "+index);
-                            searches.add(new RoomSearch());
-                        }
-                        RoomSearch curSearch = searches.get(index);
-                        switch(param.toLowerCase()) {
-                            case "searches":    // Subtract one because one RoomSearch already exists.
-                                int numSearches = Integer.valueOf(value)-1;
-                                // Only make more search criteria if this value is greater than current size.
-                                while(numSearches > 0) {
-                                    searches.add(new RoomSearch());
-                                    numSearches--;
+                                // Used to indicate if the automator should quit after making one housing change,
+                                // or if it should keep searching for a better room forever (until quit).
+                                boolean searchForever = false;
+                                // Default to one search criteria configuration.
+                                // If user calls for more configurations, a larger array will be created & copied into.
+                                ArrayList<RoomSearch> searches = new ArrayList<>();
+                                // Configure only the first search configuration with runtime arguments.
+                                // Additional configurations need to be configured in runtime.
+                                // Term is relevant to several automators so it is retrieved earlier.
+                                searches.add(new RoomSearch());
+                                searches.get(0).setStep1TermSelect(term);
+                                // Reprocess each command-line argument to find arguments for houser.
+                                Map<String, Integer>  indexMap = new HashMap<>();
+                                int index = 0;
+                                for(String arg : args) {
+                                    String[] argSplit = arg.split("=", 2);
+                                    // Only parse the argument if it is splittable, such as "param=value"
+                                    if(argSplit.length > 1) {
+                                        LOGGER.info("Parameter/value pair \""+arg+"\" split at \"=\": parameter=\""+argSplit[0]+"\" value=\""+argSplit[1]+"\"");
+                                        // Do not alter the input strings, fields may need to be exact (ex. password).
+                                        String param = argSplit[0];
+                                        String value = argSplit[1];
+                                        String[] paramSplit = param.split("-", 2);
+                                        if(paramSplit.length > 1) {
+                                            LOGGER.info("Index/parameter pair \""+param+"\" split at \"-\": index=\""+paramSplit[0]+"\" parameter=\""+paramSplit[1]+"\"");
+                                            if(!indexMap.containsKey(paramSplit[0])) {
+                                                LOGGER.info("Adding new index mapping \""+paramSplit[0]+"\" -> \""+indexMap.size());
+                                                indexMap.put(paramSplit[0], indexMap.size());
+                                            }
+                                            index = indexMap.get(paramSplit[0]);
+                                            LOGGER.info("Index map found \""+paramSplit[0]+"\" -> "+index);
+                                            param = paramSplit[1];
+                                        }
+                                        while(index > searches.size()-1) {
+                                            LOGGER.info("Creating new room search configuration at index "+index);
+                                            searches.add(new RoomSearch());
+                                        }
+                                        RoomSearch curSearch = searches.get(index);
+                                        switch(param.toLowerCase()) {
+                                            case "searches":    // Subtract one because one RoomSearch already exists.
+                                                int numSearches = Integer.valueOf(value)-1;
+                                                // Only make more search criteria if this value is greater than current size.
+                                                while(numSearches > 0) {
+                                                    searches.add(new RoomSearch());
+                                                    numSearches--;
+                                                }
+                                            case "forever":     switch(value.toLowerCase()) {
+                                                case "true":        searchForever = true;   break;
+                                                case "false":       searchForever = false;  break;
+                                                default:            break;
+                                            }   break;
+                                            // Inside this switch statement it is okay to lowercase the input strings
+                                            // because the input strings themselves are not passed to something important.
+                                            case "s2radio":     switch(value.toLowerCase()) {
+                                                case "building":    curSearch.setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
+                                                case "cluster":     curSearch.setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
+                                                case "area":        curSearch.setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
+                                                case "all":         curSearch.setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
+                                                default:            break;
+                                            }   break;
+                                            case "s3radio":     switch(value.toLowerCase()) {
+                                                case "type":        curSearch.setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
+                                                case "design":      curSearch.setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
+                                                case "floor":       curSearch.setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
+                                                case "option":      curSearch.setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
+                                                default:            break;
+                                            }   break;
+                                            case "s4radio":     switch(value.toLowerCase()) {
+                                                case "none":        curSearch.setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
+                                                case "room_open":   curSearch.setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
+                                                case "suite_open":  curSearch.setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
+                                                case "type":        curSearch.setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
+                                                case "open_double": curSearch.setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
+                                                case "open_triple": curSearch.setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
+                                                default:            break;
+                                            }   break;
+                                            // Here the values are passed along to something case-sensitive
+                                            // so the input strings cannot be made lowercase.
+                                            case "process":     curSearch.setStep1ProcessSelect(value);   break;
+                                            case "s2select":    curSearch.setStep2Select(value);          break;
+                                            case "s3select":    curSearch.setStep3Select(value);          break;
+                                            case "s4select":    curSearch.setStep4Select(value);          break;
+                                            default:            break;
+                                        }
+                                    }
                                 }
-                            case "forever":     switch(value.toLowerCase()) {
-                                case "true":        searchForever = true;   break;
-                                case "false":       searchForever = false;  break;
-                                default:            break;
-                            }   break;
-                            // Inside this switch statement it is okay to lowercase the input strings
-                            // because the input strings themselves are not passed to something important.
-                            case "s2radio":     switch(value.toLowerCase()) {
-                                case "building":    searches.get(index).setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
-                                case "cluster":     searches.get(index).setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
-                                case "area":        searches.get(index).setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
-                                case "all":         searches.get(index).setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
-                                default:            break;
-                            }   break;
-                            case "s3radio":     switch(value.toLowerCase()) {
-                                case "type":        searches.get(index).setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
-                                case "design":      searches.get(index).setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
-                                case "floor":       searches.get(index).setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
-                                case "option":      searches.get(index).setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
-                                default:            break;
-                            }   break;
-                            case "s4radio":     switch(value.toLowerCase()) {
-                                case "none":        searches.get(index).setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
-                                case "room_open":   searches.get(index).setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
-                                case "suite_open":  searches.get(index).setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
-                                case "type":        searches.get(index).setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
-                                case "open_double": searches.get(index).setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
-                                case "open_triple": searches.get(index).setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
-                                default:            break;
-                            }   break;
-                            // Here the values are passed along to something case-sensitive
-                            // so the input strings cannot be lowercased.
-                            case "process":     searches.get(index).setStep1ProcessSelect(value);   break;
-                            case "s2select":    searches.get(index).setStep2Select(value);          break;
-                            case "s3select":    searches.get(index).setStep3Select(value);          break;
-                            case "s4select":    searches.get(index).setStep4Select(value);          break;
-                            default:            break;
-                        }
-                    }
-                }
-                LOGGER.config("searchForever = \""+searchForever+"\"");
-                for(int i = 0; i < searches.size(); i++) {
-                    LOGGER.config(i+"-step1TermSelect = \""+searches.get(i).getStep1TermSelect()+"\"");
-                    LOGGER.config(i+"-step1ProcessSelect = \""+searches.get(i).getStep1ProcessSelect()+"\"");
-                    LOGGER.config(i+"-step2Radio = \""+searches.get(i).getStep2Radio()+"\"");
-                    LOGGER.config(i+"-step2Select = \""+searches.get(i).getStep2Select()+"\"");
-                    LOGGER.config(i+"-step3Radio = \""+searches.get(i).getStep3Radio()+"\"");
-                    LOGGER.config(i+"-step3Select = \""+searches.get(i).getStep3Select()+"\"");
-                    LOGGER.config(i+"-step4Radio = \""+searches.get(i).getStep4Radio()+"\"");
-                    LOGGER.config(i+"-step4Select = \""+searches.get(i).getStep4Select()+"\"");
-                }
-                SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
-                spireHousing.setLevel(LOGGER.getLevel());
-                LOGGER.info("Running houser with "+searches.size()+" searches.");
-                spireHousing.run();
-                break;
+                                LOGGER.config("searchForever = \""+searchForever+"\"");
+                                for(int i = 0; i < searches.size(); i++) {
+                                    LOGGER.config(i+"-step1TermSelect = \""+searches.get(i).getStep1TermSelect()+"\"");
+                                    LOGGER.config(i+"-step1ProcessSelect = \""+searches.get(i).getStep1ProcessSelect()+"\"");
+                                    LOGGER.config(i+"-step2Radio = \""+searches.get(i).getStep2Radio()+"\"");
+                                    LOGGER.config(i+"-step2Select = \""+searches.get(i).getStep2Select()+"\"");
+                                    LOGGER.config(i+"-step3Radio = \""+searches.get(i).getStep3Radio()+"\"");
+                                    LOGGER.config(i+"-step3Select = \""+searches.get(i).getStep3Select()+"\"");
+                                    LOGGER.config(i+"-step4Radio = \""+searches.get(i).getStep4Radio()+"\"");
+                                    LOGGER.config(i+"-step4Select = \""+searches.get(i).getStep4Select()+"\"");
+                                }
+                                SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
+                                spireHousing.setLevel(LOGGER.getLevel());
+                                LOGGER.info("Running houser with "+searches.size()+" searches.");
+                                spireHousing.run();
+                                break;
             default:            break;
         }
     }
