@@ -654,7 +654,7 @@ public class SpireAutomator {
             case EDGE:      if(name.contains("microsoftwebdriver")) {
                                 result = true;
                             }   break;
-            case SAFARI:    result = true;
+            case SAFARI:    result = true; //TODO: How to check if able to drive Safari?
                             break;
             default:    break;
         }
@@ -834,7 +834,9 @@ public class SpireAutomator {
         try {
             if(!readmeMd.exists()) {
                 readmeMd = new File(getTemporaryDirectory(), readmeMd.getName());
-                FileUtils.copyURLToFile(new URL(UMass.README_GITHUB_URL), readmeMd);
+                URL readmeGithubUrl = new URL(UMass.README_GITHUB_URL);
+                LOGGER.info("Downloading \""+readmeGithubUrl.toString()+"\" to \""+readmeMd.getAbsolutePath()+"\"");
+                FileUtils.copyURLToFile(readmeGithubUrl, readmeMd);
             }
             printReadmeMd(readmeMd);
         } catch(IOException e) {
