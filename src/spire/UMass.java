@@ -93,6 +93,9 @@ public class UMass {
     public static int WAIT_INTERVAL = 500;
     public static int LOAD_INTERVAL = 5000;
     public static int TIMEOUT_INTERVAL = 10;
+    public static String GITHUB_URL = "https://github.com/maximberezin97/spireautomator";
+    public static String README_GITHUB_URL = "https://raw.githubusercontent.com/maximberezin97/spireautomator/master/README.md";
+
 
 
     public static final String CHECKBOX_CLASS = "PSCHECKBOX";

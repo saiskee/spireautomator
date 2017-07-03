@@ -27,6 +27,8 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.SystemUtils.IS_OS_LINUX;
 import static org.apache.commons.lang3.SystemUtils.IS_OS_MAC;
@@ -164,6 +166,7 @@ public class SpireAutomator {
         String password = null;
         String term = null;
         File asciiArt = new File("asciiArt");
+        File readmeMd = new File("README.md");
 
         if(args.length > 0) {
             // Process each command-line argument.
@@ -208,11 +211,12 @@ public class SpireAutomator {
                         default:            break;
                     }
                 } else if(arg.trim().toLowerCase().equals("help")) {
-                    printHelp(asciiArt);
+                    printHelp(asciiArt, readmeMd);
                 }
             }
         } else {
-            System.out.println("Use the \"help\" program argument/parameter to learn how to use this program.");
+            System.out.println("Use the \"help\" argument, open the README.md, or find this project " +
+                    "on GitHub at "+UMass.GITHUB_URL +" to learn how to use this program.");
             // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
 
@@ -304,7 +308,7 @@ public class SpireAutomator {
         // Go to the target website in the browser. Default is UMass SPIRE homepage.
         driver.get(UMass.SPIRE_HOME_URL);
         LOGGER.info("Driver going to \""+driver.getCurrentUrl()+"\"");
-        // Boolean used to reprompt user for username/password in case the provided credentials did not progress page.
+        // Boolean used to re-prompt user for username/password in case the provided credentials did not progress page.
         boolean loginAttempted = false;
         do {
             // If no username was provided, prompt for one.
@@ -636,13 +640,23 @@ public class SpireAutomator {
 
     private static boolean isDriverBrowserValid(Browser browser, String name) {
         boolean result = false;
+        name = name.toLowerCase().trim();
         switch(browser) {
-            case CHROME:    if(name.contains("chrome")) {
+            case CHROME:    if(name.contains("chromedriver")) {
                                 result = true;
                             }   break;
-            case FIREFOX:   if(name.contains("firefox") || name.contains("gecko")) {
+            case FIREFOX:   if(name.contains("firefox") || name.contains("geckodriver")) {
                                 result = true;
                             }   break;
+            case IE:        if(name.contains("iedriverserver")) {
+                                result = true;
+                            }   break;
+            case EDGE:      if(name.contains("microsoftwebdriver")) {
+                                result = true;
+                            }   break;
+            case SAFARI:    result = true;
+                            break;
+            default:    break;
         }
         return result;
     }
@@ -780,65 +794,52 @@ public class SpireAutomator {
         return tempDir;
     }
 
-    private static void printHelp(File asciiArt) {
+    private static void printAsciiArt(File file) throws IOException {
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+        String line;
+        while((line = br.readLine()) != null) {
+            System.out.println(line);
+        }
+        br.close();
+        fr.close();
+    }
+
+    private static void printReadmeMd(File file) throws IOException {
         int separatorLength = 80;
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+        String line;
+        Pattern headerPattern = Pattern.compile("^#+(.*)");
+        Matcher headerMatcher;
+        while((line = br.readLine()) != null) {
+            headerMatcher = headerPattern.matcher(line);
+            if(headerMatcher.matches()) {
+                System.out.println(getHeaderSeparator(headerMatcher.group(1).toUpperCase().trim(), separatorLength));
+            } else if(!line.equals("")) {
+                line = line.replace("`", "\"");
+                System.out.println(line);
+            }
+        }
+        br.close();
+        fr.close();
+    }
+
+    private static void printHelp(File asciiArt, File readmeMd) {
         try {
             printAsciiArt(asciiArt);
         } catch(IOException e) {
             LOGGER.warning(e.toString());
         }
-        System.out.println("");
-        System.out.println(getHeaderSeparator("INTRODUCTION", separatorLength));
-        System.out.println("This SPIRE Automator takes runtime arguments to set its functional configurations.");
-        System.out.println("Each section describes an automator and lists its needed runtime arguments.");
-        System.out.println("Some arguments can understand only the values that are listed below.");
-        System.out.println("Arguments listed below that do not list predefined values may take any input.");
-        System.out.println("If an argument with predefined values is given a value that is not listed below,");
-        System.out.println("\tthe program will treat that argument as if it had not been set at all.");
-        System.out.println("If an argument is not set, the automator will prompt the user for it if it is needed.");
-        System.out.println("The automator will not prompt the user for unnecessary arguments.");
-        System.out.println("It is recommended to wrap all parameter/value arguments in quotes to preserve spaces,");
-        System.out.println("\tespecially arguments without predefined values. Here is an example of a good command:");
-        System.out.println("\tjava -jar spireautomator.jar \"browser=chrome\" \"automator=enroller\" \"term=Fall 1863\"");
-        System.out.println(getHeaderSeparator("GENERAL", separatorLength));
-        System.out.println("The following are runtime arguments used universally by all automators:");
-        System.out.println("\tlogging=[off, severe, warning, info, config, all]");
-        System.out.println("\tbrowser=[chrome, firefox, internetexplorer, edge, safari]");
-        System.out.println("\tdriver");
-        System.out.println("\ttimeout=[seconds > 0]");
-        System.out.println("\twait=[milliseconds > 0]");
-        System.out.println("\turl");
-        System.out.println("\tautomator=[enroller, houser]");
-        System.out.println("\tusername");
-        System.out.println("\tpassword");
-        System.out.println("\tterm");
-        System.out.println(getHeaderSeparator("ENROLLER", separatorLength));
-        System.out.println("The enroller automates the process of searching for and adding/dropping/editing/swapping");
-        System.out.println("\tclasses in SPIRE. Complex performing conditions for actions may be specified as well.");
-        System.out.println("There are no runtime arguments needed for the enrollment automator.");
-        System.out.println("Enroller configurations must be hardcoded and passed to the automator.");
-        System.out.println("An editable example of enroller configurations may be found in:");
-        System.out.println("\tspire.SpireAutomator.setEnrollerConfiguration()");
-        System.out.println(getHeaderSeparator("HOUSER", separatorLength));
-        System.out.println("The houser automates the process of searching for and assigning oneself to a room in SPIRE.");
-        System.out.println("The houser is capable of searching for rooms using the same search criteria that the main");
-        System.out.println("\tSPIRE website provides, parsing the available rooms, determining whether an available room");
-        System.out.println("\tis better than the room currently assigned to the user, and assigning oneself to the room.");
-        System.out.println("The automator will prompt the user for input if a value is needed but not set.");
-        System.out.println("Parameters with a prefix of \"[00-]\" may be set for a specific room search configuration index.");
-        System.out.println("\tFor example, to set \"s2radio=building\" for the third configuration, the argument would be");
-        System.out.println("\t\"3-s2radio=building\". Indices start at 0 and must be >=0. Prefixes are optional.");
-        System.out.println("\tIf the prefix is not included, the parameter will be set for configuration at index 0.");
-        System.out.println("The following arguments are used by this automator:");
-        System.out.println("\tsearches=[>1]");
-        System.out.println("\tforever=[true, false]");
-        System.out.println("\t[00-]process");
-        System.out.println("\t[00-]s2radio=[building, cluster, area, all]");
-        System.out.println("\t[00-]s2select");
-        System.out.println("\t[00-]s3radio=[type, design, floor, option]");
-        System.out.println("\t[00-]s3select");
-        System.out.println("\t[00-]s4radio=[none, room_open, suite_open, type, open_double, open_triple]");
-        System.out.println("\t[00-]s4select");
+        try {
+            if(!readmeMd.exists()) {
+                readmeMd = new File(getTemporaryDirectory(), readmeMd.getName());
+                FileUtils.copyURLToFile(new URL(UMass.README_GITHUB_URL), readmeMd);
+            }
+            printReadmeMd(readmeMd);
+        } catch(IOException e) {
+            LOGGER.warning(e.toString());
+        }
         System.exit(0);
     }
 
@@ -852,16 +853,5 @@ public class SpireAutomator {
             sb.append("-");
         }
         return sb.toString();
-    }
-
-    private static void printAsciiArt(File file) throws IOException {
-        FileReader fr = new FileReader(file);
-        BufferedReader br = new BufferedReader(fr);
-        String line;
-        while((line = br.readLine()) != null) {
-            System.out.println(line);
-        }
-        br.close();
-        fr.close();
     }
 }
