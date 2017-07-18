@@ -55,7 +55,7 @@ public class Add extends Action {
         }
         // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(spireEnrollment)) {
-            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+            UMass.selectTerm(driver, spireEnrollment.getTerm());
         }
         // If the Lecture is not already in the shopping cart.
         if(spireEnrollment.getShoppingCart().get(lectureToAdd.getClassId()) == null) {

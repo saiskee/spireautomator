@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * on SPIRE.
  */
 public class SpireHousing {
-    protected final static Logger LOGGER = Logger.getLogger("spireautomator.houser");
+    private final static Logger LOGGER = Logger.getLogger("spireautomator.houser");
     private WebDriver driver;
     private ArrayList<RoomSearch> searches;
     private boolean searchForever;

@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * The constants that identify {@link org.openqa.selenium.WebElement}s
@@ -87,6 +88,7 @@ public class UMass {
     }
 
     // General
+    private final static Logger LOGGER = Logger.getLogger("umass");
     public static final int TRUE = 1;
     public static final int FALSE = 0;
     public static final int NOT_FOUND = -1;
@@ -201,39 +203,38 @@ public class UMass {
     // Room Assignment Step 3
     public static final String COMPLETE_RETURN_SELECTOR = "#UM_H_DRV_SSASSN_CANCEL";
 
-    // Returns elements of the select term table on the select term page.
     public static WebElement findElementTermTable(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting select term table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trSSR_DUMMY_RECV1\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
-    // Returns elements of the shopping cart table on the shopping cart page.
     public static WebElement findElementShoppingCart(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting shopping cart page table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trSSR_REGFORM_VW\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
-    // Returns elements of the current schedule table on the shopping cart page.
     public static WebElement findElementCartSchedule(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting shopping cart page current schedule table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trSTDNT_ENRL_SSVW\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
-    // Returns elements of the current Lecture's table of all existing Discussions.
     public static WebElement findElementDiscussionTable(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting lecture available discussions table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trSSR_CLS_TBL_R1\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
     public static WebElement findElementDropTable(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting drop class page table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trSTDNT_ENRL_SSV1\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
     public static WebElement findElementAddTable(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting add class page table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trSSR_CLS_TBL_R1\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
-    public static WebElement findElementHsgApptTable(WebDriver driver, int row, int col) {
-        return waitForElement(driver, By.cssSelector("#trHS_APPOINTMENTS\\24 0_row"+row+" > td:nth-child("+col+")"));
-    }
-
     public static WebElement findElementRoomsResults(WebDriver driver, int row, int col) {
+        LOGGER.config("Getting room search results page table cell "+row+"x"+col);
         return waitForElement(driver, By.cssSelector("#trUMH_RM_SRC_RSLTS\\24 0_row"+row+" > td:nth-child("+col+")"));
     }
 
@@ -243,18 +244,22 @@ public class UMass {
         for(WebElement tab : waitForElement(driver, By.cssSelector(
                 "#win0divDERIVED_SSTSNAV_SSTS_NAV_SUBTABS > div > table > tbody > tr:nth-child(2)")).findElements(By.tagName("td"))) {
             if(tab.getText().toLowerCase().equals(tabName.toLowerCase())) {
+                LOGGER.config(tabName+ " tab found.");
                 tabFound = tab;
                 break;
             }
         }
+        LOGGER.warning(tabName+ " tab not found.");
         return tabFound;
     }
 
     public static boolean checkSelectTerm(SpireEnrollment spireEnrollment) {
         if(UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
                 .getText().contains("Select Term")) {
+            LOGGER.info("Term must be selected.");
             return true;
         } else {
+            LOGGER.config("Term selection not needed.");
             return false;
         }
     }
@@ -264,6 +269,7 @@ public class UMass {
         for(int row = 1; row < termTable.size(); row++) {
             // If this cell contains the full name of the desired term.
             if(findElementTermTable(driver, row, 2).getText().contains(term)) {
+                LOGGER.info(term+" found in terms table.");
                 // Click the table cell with this term's radio button.
                 findElementTermTable(driver, row, 1).click();
                 // Click the Continue button to proceed.
@@ -273,6 +279,7 @@ public class UMass {
             }
         }
         // Return false when the desired term was not found.
+        LOGGER.warning(term+" not found in terms table.");
         return false;
     }
 
@@ -303,9 +310,11 @@ public class UMass {
         boolean result = false;
         try {
             if(waitForElement(driver, timeoutSeconds, by) != null) {
+                LOGGER.config("\""+by.toString()+"\" found.");
                 result = true;
             }
         } catch(TimeoutException timeout) {
+            LOGGER.warning("Waiting for \""+by.toString()+"\" timed out.");
             result = false;
         }
         return result;
@@ -315,7 +324,7 @@ public class UMass {
         try {
             Thread.sleep(millis);
         } catch(InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.warning(e.getMessage());
         }
     }
 
@@ -323,7 +332,9 @@ public class UMass {
         int result = Integer.MIN_VALUE;
         try {
             result = Integer.valueOf(string);
-        } catch(NumberFormatException e) {}
+        } catch(NumberFormatException e) {
+            LOGGER.warning(e.getMessage());
+        }
         return result;
     }
 }

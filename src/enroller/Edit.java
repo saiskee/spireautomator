@@ -40,7 +40,7 @@ public class Edit extends Action {
         }
         // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(spireEnrollment)) {
-            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+            UMass.selectTerm(driver, spireEnrollment.getTerm());
         }
         // Wait, then select the Lecture in the dropdown menu by its class ID.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLED_DROPDOWN_SELECTOR))).selectByValue(lectureToEdit.getClassId());

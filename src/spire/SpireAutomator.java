@@ -220,10 +220,10 @@ public class SpireAutomator {
             // Program will still run, prompting for all needed inputs, even if no arguments are given.
         }
 
-        LOGGER.info(args.length+" argument(s): "+Arrays.toString(args));
+        LOGGER.config(args.length+" argument(s): "+Arrays.toString(args));
         LOGGER.config("Logging level = \""+LOGGER.getLevel().toString()+"\"");
         LOGGER.config("Operating system = \""+os.name()+"\"");
-        LOGGER.config("Browser = "+browser+"\"");
+        LOGGER.config("Browser = \""+browser+"\"");
         LOGGER.config("Driver path = \""+driverPath+"\"");
         LOGGER.config("Timeout limit = \""+UMass.TIMEOUT_INTERVAL+"\"");
         LOGGER.config("URL = \""+UMass.SPIRE_HOME_URL+"\"");
@@ -232,7 +232,7 @@ public class SpireAutomator {
         if(password == null || password.equals("")) {
             LOGGER.config("Password = \""+password+"\"");
         } else {
-            LOGGER.config("Password = SET BUT NOT SHOWN");
+            LOGGER.config("Password = ****************");
         }
         LOGGER.config("Term = \""+term+"\"");
 
@@ -481,7 +481,7 @@ public class SpireAutomator {
                                 }
                                 SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
                                 spireHousing.setLevel(LOGGER.getLevel());
-                                LOGGER.info("Running houser with "+searches.size()+" searches.");
+                                LOGGER.info("Running houser with "+searches.size()+" search(es).");
                                 spireHousing.run();
                                 break;
             default:            break;

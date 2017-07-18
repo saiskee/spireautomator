@@ -6,30 +6,26 @@ import org.openqa.selenium.support.ui.Select;
 import spire.UMass;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * This class automates the enrollment process on SPIRE.
- * Though the fischerautoenroll package assumes future support
- * for other schools, it cannot be assumed that their class
- * structure is the same as UMass' structure. Other schools
- * also do not use SPIRE. This package is therefore geared
- * toward SPIRE at UMass exclusively.
- *
  * The current schedule and shopping cart are stored as
  * {@link Map}s in order to prevent duplicate Lectures
  * that may come up when combining hardcoded and parsed
  * Lectures. Keys are class IDs and return Lectures.
  */
 public class SpireEnrollment {
+    private final static Logger LOGGER = Logger.getLogger("spireautomator.enroller");
     private WebDriver driver;
-    private String selectedTerm;
+    private String term;
     private Map<String, Lecture> currentSchedule;
     private Map<String, Lecture> shoppingCart;
     private ArrayList<Action> actions;
 
     public SpireEnrollment(WebDriver driver) {
         this.driver = driver;
-        this.selectedTerm = "";
+        this.term = "";
         this.currentSchedule = new HashMap<>();
         this.shoppingCart = new HashMap<>();
         this.actions = new ArrayList<>();
@@ -40,9 +36,9 @@ public class SpireEnrollment {
         this.actions = actions;
     }
 
-    public SpireEnrollment(WebDriver driver, String selectedTerm, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
+    public SpireEnrollment(WebDriver driver, String term, Map<String, Lecture> currentSchedule, Map<String, Lecture> shoppingCart, ArrayList<Action> actions) {
         this(driver);
-        this.selectedTerm = selectedTerm;
+        this.term = term;
         this.currentSchedule = currentSchedule;
         this.shoppingCart = shoppingCart;
         this.actions = actions;
@@ -56,10 +52,12 @@ public class SpireEnrollment {
      */
     public void run() {
         // Click on the link that goes to enrollment.
+        LOGGER.info("Clicking CSS selector \""+UMass.ENROLLMENT_LINK_SELECTOR+"\"");
         UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLMENT_LINK_SELECTOR)).click();
         // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(this)) {
-            UMass.selectTerm(driver, this.getSelectedTerm());
+            LOGGER.info("Need to select term.");
+            UMass.selectTerm(driver, this.term);
         }
 
         // Currently in the shopping cart. There may be some hardcoded Classes
@@ -68,36 +66,32 @@ public class SpireEnrollment {
         // with the use of a Map with keys of class IDs.
 
         // When there are no enrolled classes, this table will not exist, and will not be parsed.
-        if(UMass.isElementFound(driver, 5, By.cssSelector(UMass.CART_SCHEDULE_SELECTOR))) {
+        if(UMass.isElementFound(driver, UMass.TIMEOUT_INTERVAL, By.cssSelector(UMass.CART_SCHEDULE_SELECTOR))) {
+            LOGGER.info("About to parse the current schedule.");
             currentSchedule.putAll(parseCurrentSchedule());
         }
+        LOGGER.info("About to parse the shopping cart.");
         shoppingCart.putAll(parseShoppingCart());
         printCurrentSchedule();
         printShoppingCart();
         if(actions.isEmpty()) {
             // Create Actions based on current schedule and shopping cart.
+            LOGGER.info("Prompting user to create actions during runtime.");
             actions = createActions();
         }
         printActions();
 
-        System.out.println("Beginning automated refresh.");
+        LOGGER.info("Beginning automated refresh.");
         long previousTime = System.currentTimeMillis();
         while(!actions.isEmpty()) {
-            // Reload current shopping cart page at least every 5 seconds.
-            // If it has been less than 5 seconds since the last refresh, wait an extra 5 seconds.
-            if((System.currentTimeMillis()-previousTime)/1000 < 5) {
-                UMass.sleep(5000);
-            }
-            // Uncomment this line to show the number of seconds since the last refresh, on every refresh.
-            // System.out.println("Refreshing "+(System.currentTimeMillis()-previousTime)/1000+" seconds later...");
-            previousTime = System.currentTimeMillis();
+            // Reload current shopping cart page at least every 5 seconds; checked after loop.
             driver.get(driver.getCurrentUrl());
             // For each Action, check Conditions, meet if able, perform if able.
             for(Action action : actions) {
                 if(action.allConditionsMet()) {
-                    System.out.print("All conditions met for action:\n"+action.toString()+"\nPerforming action... ");
+                    LOGGER.info("All conditions met for action \""+action.toString()+"\", performing action... ");
                     if(action.perform(this)) {
-                        System.out.println("Successfully performed action.");
+                        LOGGER.info("Successfully performed action \""+action.toString()+"\"");
                         // If the successful performance of this Action satisfies other Actions, mark them as such.
                         action.setSatisfied(true);
                         action.satisfyOtherActions();
@@ -109,40 +103,52 @@ public class SpireEnrollment {
                         printShoppingCart();
                         printActions();
                     } else {
-                        System.out.println("Failed to perform action.");
+                        LOGGER.info("Failed to perform action \""+action.toString()+"\"");
                     }
                 }
             }
             // Remove all satisfied actions.
             for(Action action: actions) {
                 if(action.isSatisfied()) {
+                    LOGGER.info("Removing satisfied action \""+action.toString()+"\" from action list.");
                     actions.remove(action);
                 }
             }
+            if ((System.currentTimeMillis() - previousTime) < UMass.LOAD_INTERVAL) {
+                LOGGER.info("Not enough time has passed since last page load; sleeping for "+
+                        UMass.LOAD_INTERVAL+" milliseconds.");
+                UMass.sleep(UMass.LOAD_INTERVAL);
+            }
+            // Uncomment this line to show the number of seconds since the last refresh, on every refresh.
+            // System.out.println("Refreshing "+(System.currentTimeMillis()-previousTime)/1000+" seconds later...");
+            previousTime = System.currentTimeMillis();
         }
-        System.out.println("All actions performed.");
+        LOGGER.info("All actions performed.");
         printCurrentSchedule();
     }
 
-    public void printCurrentSchedule() {
+    private void printCurrentSchedule() {
         System.out.println("Current schedule:");
         for(Class c : currentSchedule.values()) {
+            LOGGER.config("Printing class in schedule \""+c+"\"");
             System.out.println(c.toString());
         }
         System.out.println();
     }
 
-    public void printShoppingCart() {
+    private void printShoppingCart() {
         System.out.println("Shopping cart:");
         for(Lecture l : shoppingCart.values()) {
+            LOGGER.config("Printing lecture in shopping cart \""+l+"\"");
             System.out.println(l.toString());
         }
         System.out.println();
     }
 
-    public void printActions() {
+    private void printActions() {
         System.out.println("Actions:");
         for(Action a : actions.toArray(new Action[0])) {
+            LOGGER.config("Printing action \""+a+"\"");
             System.out.println(a.toString());
         }
         System.out.println();
@@ -189,16 +195,17 @@ public class SpireEnrollment {
 
     private ArrayList<Discussion> getOtherScheduleDiscussions(Lecture lecture) {
         ArrayList<Discussion> otherDiscussions = new ArrayList<>();
-        // Clicks on the "edit" tab at the top of SPIRE.
+        LOGGER.info("Clicking the \"Edit\" tab on the top of the enrollment portal of SPIRE.");
         UMass.findElementTab(driver, "edit").click();
-        // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(this)) {
-            UMass.selectTerm(driver, this.getSelectedTerm());
+            LOGGER.info("SPIRE needs a term to be selected.");
+            UMass.selectTerm(driver, this.term);
         }
-        // Waits and finds enrolled Lectures dropdown list and selects Lecture with its class ID.
+        LOGGER.info("Selecting \""+lecture.getClassId()+"\" in dropdown CSS selector \""+UMass.ENROLLED_DROPDOWN_SELECTOR+"\"");
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.ENROLLED_DROPDOWN_SELECTOR))).selectByValue(lecture.getClassId());
         driver.findElement(By.cssSelector(UMass.EDIT_CONFIRM_STEP_1_SELECTOR)).click();
         // Waits for the discussions table to load, then iterates over all Discussions, regardless of open/closed.
+        LOGGER.info("Iterating over all discussions in CSS selector \""+UMass.DISCUSSIONS_TABLE_SELECTOR+"\"");
         for(int i = 1; i < UMass.waitForElement(driver, By.cssSelector(UMass.DISCUSSIONS_TABLE_SELECTOR))
                 .findElements(By.tagName("tr")).size(); i++) {
             Discussion otherDiscussion = new Discussion();
@@ -207,12 +214,14 @@ public class SpireEnrollment {
             otherDiscussion.setClassId(UMass.findElementDiscussionTable(driver, i, 2).getText());
             otherDiscussion.setSection(UMass.findElementDiscussionTable(driver, i, 3).getText());
             otherDiscussions.add(otherDiscussion);
+            LOGGER.config("Discussion found \""+otherDiscussion.getClassId()+"\"");
         }
-        // Goes back to the shopping cart after all Discussions are parsed in.
+        LOGGER.info("Going back to \"Add\" tab on the top of the enrollment portal of SPIRE.");
         UMass.findElementTab(driver, "add").click();
         // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(this)) {
-            UMass.selectTerm(driver, this.getSelectedTerm());
+            LOGGER.info("SPIRE needs a term to be selected.");
+            UMass.selectTerm(driver, this.getTerm());
         }
         return otherDiscussions;
     }
@@ -243,7 +252,7 @@ public class SpireEnrollment {
                 UMass.findElementTab(driver, "add").click();
                 // Check if SPIRE first needs to have a term selected.
                 if(UMass.checkSelectTerm(this)) {
-                    UMass.selectTerm(driver, this.getSelectedTerm());
+                    UMass.selectTerm(driver, this.getTerm());
                 }
                 cart.put(cartLecture.getClassId(),cartLecture);
             }
@@ -303,7 +312,7 @@ public class SpireEnrollment {
         return actions;
     }
 
-    public Lecture selectLecture(Map<String, Lecture> lectures) {
+    private Lecture selectLecture(Map<String, Lecture> lectures) {
         for(Lecture l : lectures.values()) {
             System.out.println(l.getClassId()+": "+l.getNameAndDescription());
         }
@@ -315,7 +324,7 @@ public class SpireEnrollment {
         return result;
     }
 
-    public Discussion selectDiscussion(Map<String, Discussion> discussions) {
+    private Discussion selectDiscussion(Map<String, Discussion> discussions) {
         for(Discussion d : discussions.values()) {
             System.out.println(d.getClassId()+"+ "+d.getNameAndDescription());
         }
@@ -331,8 +340,8 @@ public class SpireEnrollment {
         return driver;
     }
 
-    public String getSelectedTerm() {
-        return selectedTerm;
+    public String getTerm() {
+        return term;
     }
 
     public Map<String, Lecture> getCurrentSchedule() {

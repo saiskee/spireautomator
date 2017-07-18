@@ -41,7 +41,7 @@ public class Drop extends Action {
         }
         // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(spireEnrollment)) {
-            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+            UMass.selectTerm(driver, spireEnrollment.getTerm());
         }
         // Get a list of all of the Lectures that can be dropped.
         List<WebElement> dropTable = UMass.waitForElement(driver, By.cssSelector(UMass.DROP_TABLE_SELECTOR)).findElements(By.tagName("tr"));

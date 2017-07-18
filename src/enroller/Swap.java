@@ -55,7 +55,7 @@ public class Swap extends Action {
         }
         // Check if SPIRE first needs to have a term selected.
         if(UMass.checkSelectTerm(spireEnrollment)) {
-            UMass.selectTerm(driver, spireEnrollment.getSelectedTerm());
+            UMass.selectTerm(driver, spireEnrollment.getTerm());
         }
         // Select the Lecture to drop.
         new Select(UMass.waitForElement(driver, By.cssSelector(UMass.SWAP_SCHEDULE_MENU_SELECTOR)))
