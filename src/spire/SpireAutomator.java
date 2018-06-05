@@ -486,6 +486,7 @@ public class SpireAutomator {
                                 break;
             default:            break;
         }
+    driver.quit();
     }
 
     /**
