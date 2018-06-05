@@ -1,8 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
-.idea/inspectionProfiles/
-.idea/workspace.xml
-.idea/artifacts/
-.idea/dictionaries/
+.idea
 lib/
 out/
 src/META-INF

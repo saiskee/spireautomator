@@ -50,10 +50,29 @@ An editable example of enroller configurations may be found in:
 	`spire.SpireAutomator.setEnrollerConfiguration()`
 ## Houser
 The houser automates the process of searching for and assigning oneself to a room in SPIRE.
-The houser is capable of searching for rooms using the same search criteria that the main
-	SPIRE website provides, parsing the available rooms, determining whether an available room
-	is better than the room currently assigned to the user, and assigning oneself to the room.
-The automator will prompt the user for input if a value is needed but not set.
+The houser automatically makes searches for rooms using SPIRE's four-step filter, and if
+    any rooms are found, will automatically assign the user to the first room in the results
+    list. The houser can iterate over various search configurations for flexibility, which are
+    specified using the runtime parameters described below.
+It is important that the search criteria configurations are specific, such that the user would
+    be equally satisfied being assigned to any of the rooms that the search might return. It is
+    not a good idea to make blanket queries (for example, search for all open single rooms),
+    because there may be many results, and the houser will simply assign the user to the first
+    room in that list, which is typically in alphabetical order by building name.
+The user specifies their search criteria by each radio button and dropdown menu. Some dropdown
+    menu criteria are dependent on the setting of a radio button. If a certain setting makes it
+     such that a dropdown menu is not visible, that setting does not need to be set.
+     It is assumed that all of the user's search configurations are for the same term/semester,
+     so that setting is universal to all search configurations. This is not the case with the
+     appointment process, as there are points in time where a user may have several active
+     assignment appointments, and this setting should be set for each search configuration.
+     If the user does not specify some setting(s) in a search configuration, or does not pass
+     any runtime search configuration parameters at all, the houser will prompt the user for
+     input at runtime, and remember his/her inputs for the lifetime of the process.
+The user may make several search configurations by numerically specifying them. The number may
+    be any two-digit value, where each parameter's number is delimited from the criteria by a
+    hyphen. If the user intends to only have one search configuration, he/she does not need to
+    make any numerical criteria configuration at all.
 Parameters with a prefix of `[00-]` may be set for a specific room search configuration index.
 	For example, to set `s2radio=building` for the third configuration, the argument would be
 	`3-s2radio=building`. Prefixes are optional. If the prefix is not included,
