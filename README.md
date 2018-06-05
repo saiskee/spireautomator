@@ -73,8 +73,8 @@ The user specifies their search criteria by each radio button and dropdown menu.
      input at runtime, and remember his/her inputs for the lifetime of the process.
 
 The user may make several search configurations by numerically specifying them. The number may
-    be any two-digit value, where each parameter's number is delimited from the criteria by a
-    hyphen. If the user intends to only have one search configuration, he/she does not need to
+    be any number, where each parameter's number is delimited from the criteria by a hyphen.
+    If the user intends to only have one search configuration, he/she does not need to
     make any numerical criteria configuration at all.
 Parameters with a prefix of `[00-]` may be set for a specific room search configuration index.
 	For example, to set `s2radio=building` for the third configuration, the argument would be
