@@ -117,7 +117,7 @@ public class UMass {
     public static String SPIRE_HOME_URL = "https://spire.umass.edu/";
     public static final String USERNAME_ID = "userid";
     public static final String PASSWORD_ID = "pwd";
-    public static final String LOGIN_BUTTON_SELECTOR = "#login > p:nth-child(5) > input[type=\"submit\"]";
+    public static final String LOGIN_BUTTON_SELECTOR = "#login > p:nth-child(7) > input[type=\"submit\"]";
 
     // Student Center
     public static final String ENROLLMENT_LINK_SELECTOR = "#DERIVED_SSS_SCR_SSS_LINK_ANCHOR1";
