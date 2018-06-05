@@ -95,12 +95,12 @@ public class SpireAutomator {
     }
 
     public enum OSBrowser {
-        WIN_CHROME("https://chromedriver.storage.googleapis.com/2.30/chromedriver_win32.zip"),
-        MAC_CHROME("https://chromedriver.storage.googleapis.com/2.30/chromedriver_mac64.zip"),
-        NIX_CHROME("https://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip"),
-        WIN_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-win32.zip"),
-        MAC_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-macos.tar.gz"),
-        NIX_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-linux64.tar.gz"),
+        WIN_CHROME("https://chromedriver.storage.googleapis.com/2.38/chromedriver_win32.zip"),
+        MAC_CHROME("https://chromedriver.storage.googleapis.com/2.38/chromedriver_mac64.zip"),
+        NIX_CHROME("https://chromedriver.storage.googleapis.com/2.38/chromedriver_linux64.zip"),
+        WIN_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-win32.zip"),
+        MAC_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-macos.tar.gz"),
+        NIX_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-linux64.tar.gz"),
         WIN_IE("http://selenium-release.storage.googleapis.com/3.4/IEDriverServer_Win32_3.4.0.zip"),
         WIN_EDGE("https://download.microsoft.com/download/3/4/2/342316D7-EBE0-4F10-ABA2-AE8E0CDF36DD/MicrosoftWebDriver.exe"),
         MAC_SAFARI("");
