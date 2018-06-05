@@ -54,11 +54,13 @@ The houser automatically makes searches for rooms using SPIRE's four-step filter
     any rooms are found, will automatically assign the user to the first room in the results
     list. The houser can iterate over various search configurations for flexibility, which are
     specified using the runtime parameters described below.
+
 It is important that the search criteria configurations are specific, such that the user would
     be equally satisfied being assigned to any of the rooms that the search might return. It is
     not a good idea to make blanket queries (for example, search for all open single rooms),
     because there may be many results, and the houser will simply assign the user to the first
     room in that list, which is typically in alphabetical order by building name.
+
 The user specifies their search criteria by each radio button and dropdown menu. Some dropdown
     menu criteria are dependent on the setting of a radio button. If a certain setting makes it
      such that a dropdown menu is not visible, that setting does not need to be set.
@@ -69,6 +71,7 @@ The user specifies their search criteria by each radio button and dropdown menu.
      If the user does not specify some setting(s) in a search configuration, or does not pass
      any runtime search configuration parameters at all, the houser will prompt the user for
      input at runtime, and remember his/her inputs for the lifetime of the process.
+
 The user may make several search configurations by numerically specifying them. The number may
     be any two-digit value, where each parameter's number is delimited from the criteria by a
     hyphen. If the user intends to only have one search configuration, he/she does not need to
