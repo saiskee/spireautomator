@@ -397,9 +397,7 @@ public class SpireAutomator {
                                 ArrayList<RoomSearch> searches = new ArrayList<>();
                                 // Configure only the first search configuration with runtime arguments.
                                 // Additional configurations need to be configured in runtime.
-                                // Term is relevant to several automators so it is retrieved earlier.
                                 searches.add(new RoomSearch());
-                                searches.get(0).setStep1TermSelect(term);
                                 // Reprocess each command-line argument to find arguments for houser.
                                 Map<String, Integer>  indexMap = new HashMap<>();
                                 int index = 0;
@@ -475,8 +473,11 @@ public class SpireAutomator {
                                         }
                                     }
                                 }
+
                                 LOGGER.config("searchForever = \""+searchForever+"\"");
                                 for(int i = 0; i < searches.size(); i++) {
+                                    // Assume that all searches are for the same semester, so set this term to all searches.
+                                    searches.get(i).setStep1TermSelect(term);
                                     LOGGER.config(i+"-step1TermSelect = \""+searches.get(i).getStep1TermSelect()+"\"");
                                     LOGGER.config(i+"-step1ProcessSelect = \""+searches.get(i).getStep1ProcessSelect()+"\"");
                                     LOGGER.config(i+"-step2Radio = \""+searches.get(i).getStep2Radio()+"\"");
