@@ -342,7 +342,7 @@ public class SpireAutomator {
             }
             driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(password);
             // SPIRE slightly changed the CSS selector for the login button. Look for new one first, if not found, try old one.
-            LOGGER.info("Looking for the login button...");
+            LOGGER.info("Looking for the login button.");
             if(UMass.isElementFound(driver, UMass.TIMEOUT_INTERVAL, By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR))) {
                 LOGGER.info("Clicking CSS selector \"" + UMass.LOGIN_BUTTON_SELECTOR + "\"");
                 driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();

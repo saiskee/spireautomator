@@ -79,7 +79,10 @@ public class SpireHousing {
                 // Parse the results and save them to the current search configuration.
                 curSearch.setResults(parseRooms());
                 //TODO: How to select which room to assign, if multiple?
-                if(false) {
+                // Current solution is to say that the user must specify search criteria such that they would be satisfied
+                // with ANY of the rooms returned. The houser will select the FIRST ROOM THAT APPEARS IN THE LIST,
+                // which is alphabetical by building.
+                if(!curSearch.getResults().isEmpty()) {
                     LOGGER.info("Assigning into "+curSearch.getResults().get(0).getBuilding()+" "+
                             curSearch.getResults().get(0).getNumber()+".");
                     assignRoom(driver, curSearch.getResults().get(0));
