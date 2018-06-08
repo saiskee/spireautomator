@@ -13,12 +13,16 @@ import org.apache.commons.io.FilenameUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.ie.InternetExplorerOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariDriver;
+import org.openqa.selenium.safari.SafariOptions;
 
 import java.io.*;
 import java.net.URL;
@@ -102,7 +106,8 @@ public class SpireAutomator {
         MAC_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-macos.tar.gz"),
         NIX_FIREFOX("https://github.com/mozilla/geckodriver/releases/download/v0.20.1/geckodriver-v0.20.1-linux64.tar.gz"),
         WIN_IE("http://selenium-release.storage.googleapis.com/3.4/IEDriverServer_Win32_3.4.0.zip"),
-        WIN_EDGE("https://download.microsoft.com/download/3/4/2/342316D7-EBE0-4F10-ABA2-AE8E0CDF36DD/MicrosoftWebDriver.exe"),
+        // TODO: Support automatic Windows build number detection, and download appropriate Edge driver executable.
+        WIN_EDGE("https://download.microsoft.com/download/F/8/A/F8AF50AB-3C3A-4BC4-8773-DC27B32988DD/MicrosoftWebDriver.exe"),
         MAC_SAFARI("");
 
         private final String url;
@@ -159,6 +164,7 @@ public class SpireAutomator {
         OS os = OS.getOS();
         Browser browser = null;
         OSBrowser osBrowser = null;
+        boolean headless = false;
         File driverPath = null;
         WebDriver driver = null;
         Automator automator = null;
@@ -201,6 +207,7 @@ public class SpireAutomator {
                             default:        break;
                         }   break;
                         case "driver":      driverPath = new File(value);           break;
+                        case "headless":    headless = value.equalsIgnoreCase("true");        break;
                         case "browser":     browser = Browser.getBrowser(value);
                                             osBrowser = OSBrowser.getOsBrowser(os, browser);
                                             break;
@@ -224,6 +231,7 @@ public class SpireAutomator {
         LOGGER.config("Logging level = \""+LOGGER.getLevel().toString()+"\"");
         LOGGER.config("Operating system = \""+os.name()+"\"");
         LOGGER.config("Browser = \""+browser+"\"");
+        LOGGER.config("Headless browser = \""+headless+"\"");
         LOGGER.config("Driver path = \""+driverPath+"\"");
         LOGGER.config("Timeout limit = \""+UMass.TIMEOUT_INTERVAL+"\"");
         LOGGER.config("URL = \""+UMass.SPIRE_HOME_URL+"\"");
@@ -269,38 +277,39 @@ public class SpireAutomator {
         switch(browser) {
             case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.chrome.driver\"=\""+System.getProperty("webdriver.chrome.driver")+"\"");
-                            // If the logging level is less verbose than INFO, construct a silent ChromeDriver.
-                            if(LOGGER.getLevel().intValue() >= Level.INFO.intValue()) {
-                                ChromeDriverService service = new ChromeDriverService.Builder()
-                                        .usingAnyFreePort().withSilent(true).build();
-                                driver = new ChromeDriver(service);
-                            } else {
-                                driver = new ChromeDriver();
-                            }
+                            ChromeOptions chromeOptions = new ChromeOptions();
+                            chromeOptions.setHeadless(headless);
+                            driver = new ChromeDriver(chromeOptions);
                             break;
             case FIREFOX:   System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.gecko.driver\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
-                            dc = DesiredCapabilities.firefox();
-                            dc.setCapability("silent", true);
-                            driver = new FirefoxDriver(dc);
+                            FirefoxOptions firefoxOptions = new FirefoxOptions();
+                            firefoxOptions.setHeadless(headless);
+                            driver = new FirefoxDriver(firefoxOptions);
                             break;
             case IE:        System.setProperty("webdriver.ie.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.ie.driver\"=\""+System.getProperty("webdriver.ie.driver")+"\"");
-                            dc = DesiredCapabilities.internetExplorer();
-                            dc.setCapability("silent", true);
-                            driver = new InternetExplorerDriver(dc);
+                            InternetExplorerOptions internetExplorerOptions = new InternetExplorerOptions();
+                            if(headless) {
+                                LOGGER.info("Internet Explorer does not support headless mode.");
+                            }
+                            driver = new InternetExplorerDriver(internetExplorerOptions);
                             break;
             case EDGE:      System.setProperty("webdriver.edge.driver", driverPath.getAbsolutePath());
                             LOGGER.info("Environment variable set \"webdriver.edge.driver\"=\""+System.getProperty("webdriver.edge.driver")+"\"");
-                            dc = DesiredCapabilities.edge();
-                            dc.setCapability("silent", true);
-                            driver = new EdgeDriver(dc);
+                            EdgeOptions edgeOptions = new EdgeOptions();
+                            if(headless) {
+                                LOGGER.info("Microsoft Edge does not support headless mode.");
+                            }
+                            driver = new EdgeDriver(edgeOptions);
                             break;
             case SAFARI:    //System.setProperty("SELENIUM_SERVER_JAR", driverPath.getAbsolutePath()); // Environment variable may not be necessary on Safari 10+, have not yet tested.
                             //LOGGER.info("Environment variable set \"SELENIUM_SERVER_JAR\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
-                            dc = DesiredCapabilities.safari();
-                            dc.setCapability("silent", true);
-                            driver = new SafariDriver(dc);
+                            SafariOptions safariOptions = new SafariOptions();
+                            if(headless) {
+                                LOGGER.info("Apple Safari does not support headless mode.");
+                            }
+                            driver = new SafariDriver(safariOptions);
                             break;
             default:        break;
         }

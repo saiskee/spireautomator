@@ -26,6 +26,7 @@ The following are runtime arguments used universally by all automators:
 
 	logging=[off, severe, warning, info, config, all]
 	browser=[chrome, firefox, internetexplorer, edge, safari]
+	headless=[true, false]
 	driver
 	timeout=[seconds > 0]
 	wait=[milliseconds > 0]
@@ -34,6 +35,8 @@ The following are runtime arguments used universally by all automators:
 	username
 	password
 	term
+	
+Headless browser mode is currently only supported by Google Chrome and Mozilla Firefox.
 ## Enroller
 The enroller allows the user to add, drop, swap, and edit classes under customizable conditions.
 The program refreshes SPIRE at least every five seconds and continuously checks the conditions
