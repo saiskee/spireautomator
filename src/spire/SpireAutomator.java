@@ -20,7 +20,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.ie.InternetExplorerOptions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
 
@@ -271,8 +270,6 @@ public class SpireAutomator {
                 driverPath = downloadExecutable(tempDir, osBrowser);
             }
         }
-        // DesiredCapabilities sets certain configurations to the Selenium WebDriver, such as suppressing logs to stdout.
-        DesiredCapabilities dc;
         // Now set system properties and construct driver.
         switch(browser) {
             case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
