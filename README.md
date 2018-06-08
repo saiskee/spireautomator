@@ -55,11 +55,11 @@ The houser automatically makes searches for rooms using SPIRE's four-step filter
     list. The houser can iterate over various search configurations for flexibility, which are
     specified using the runtime parameters described below.
 
-It is important that the search criteria configurations are specific, such that the user would
-    be equally satisfied being assigned to any of the rooms that the search might return. It is
-    not a good idea to make blanket queries (for example, search for all open single rooms),
-    because there may be many results, and the houser will simply assign the user to the first
-    room in that list, which is typically in alphabetical order by building name.
+**It is important that the search criteria configurations are specific, such that the user would
+    be equally satisfied being assigned to any of the rooms that the search might return.** It is
+    typically not a good idea to make blanket queries (for example, search for all open single
+    rooms), because there may be many results, and the houser will simply assign the user to the
+    first room in that list, which is typically in alphabetical order by building name.
 
 The user specifies their search criteria by each radio button and dropdown menu. Some dropdown
     menu criteria are dependent on the setting of a radio button. If a certain setting makes it
@@ -72,14 +72,14 @@ The user specifies their search criteria by each radio button and dropdown menu.
      any runtime search configuration parameters at all, the houser will prompt the user for
      input at runtime, and remember his/her inputs for the lifetime of the process.
 
-The user may make several search configurations by numerically specifying them. The number may
-    be any number, where each parameter's number is delimited from the criteria by a hyphen.
-    If the user intends to only have one search configuration, he/she does not need to
-    make any numerical criteria configuration at all.
+The user may make several search configurations by numerically specifying them. If specified,
+    each parameter's search configuration number is prepended to and delimited from the
+    criteria by a hyphen. If the user intends to only have one search configuration, he/she
+    does not need to prepend any numerical criteria configuration at all.
 Parameters with a prefix of `[00-]` may be set for a specific room search configuration index.
 	For example, to set `s2radio=building` for the third configuration, the argument would be
-	`3-s2radio=building`. Prefixes are optional. If the prefix is not included,
-	the parameter will be set for the first configuration.
+	`3-s2radio=building`. If the prefix is not included, the parameter will be set for the
+	first configuration.
 The following arguments are used by this automator:
 
 	searches=[>1]
