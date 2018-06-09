@@ -10,8 +10,8 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
@@ -270,237 +270,311 @@ public class SpireAutomator {
                 driverPath = downloadExecutable(tempDir, osBrowser);
             }
         }
-        // Now set system properties and construct driver.
-        switch(browser) {
-            case CHROME:    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
-                            LOGGER.info("Environment variable set \"webdriver.chrome.driver\"=\""+System.getProperty("webdriver.chrome.driver")+"\"");
-                            ChromeOptions chromeOptions = new ChromeOptions();
-                            chromeOptions.setHeadless(headless);
-                            driver = new ChromeDriver(chromeOptions);
-                            break;
-            case FIREFOX:   System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
-                            LOGGER.info("Environment variable set \"webdriver.gecko.driver\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
-                            FirefoxOptions firefoxOptions = new FirefoxOptions();
-                            firefoxOptions.setHeadless(headless);
-                            driver = new FirefoxDriver(firefoxOptions);
-                            break;
-            case IE:        System.setProperty("webdriver.ie.driver", driverPath.getAbsolutePath());
-                            LOGGER.info("Environment variable set \"webdriver.ie.driver\"=\""+System.getProperty("webdriver.ie.driver")+"\"");
-                            InternetExplorerOptions internetExplorerOptions = new InternetExplorerOptions();
-                            if(headless) {
-                                LOGGER.info("Internet Explorer does not support headless mode.");
-                            }
-                            driver = new InternetExplorerDriver(internetExplorerOptions);
-                            break;
-            case EDGE:      System.setProperty("webdriver.edge.driver", driverPath.getAbsolutePath());
-                            LOGGER.info("Environment variable set \"webdriver.edge.driver\"=\""+System.getProperty("webdriver.edge.driver")+"\"");
-                            EdgeOptions edgeOptions = new EdgeOptions();
-                            if(headless) {
-                                LOGGER.info("Microsoft Edge does not support headless mode.");
-                            }
-                            driver = new EdgeDriver(edgeOptions);
-                            break;
-            case SAFARI:    //System.setProperty("SELENIUM_SERVER_JAR", driverPath.getAbsolutePath()); // Environment variable may not be necessary on Safari 10+, have not yet tested.
-                            //LOGGER.info("Environment variable set \"SELENIUM_SERVER_JAR\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
-                            SafariOptions safariOptions = new SafariOptions();
-                            if(headless) {
-                                LOGGER.info("Apple Safari does not support headless mode.");
-                            }
-                            driver = new SafariDriver(safariOptions);
-                            break;
-            default:        break;
-        }
-
-        // Go to the target website in the browser. Default is UMass SPIRE homepage.
-        driver.get(UMass.SPIRE_HOME_URL);
-        LOGGER.info("Driver going to \""+driver.getCurrentUrl()+"\"");
-        // Boolean used to re-prompt user for username/password in case the provided credentials did not progress page.
-        boolean loginAttempted = false;
-        do {
-            // If no username was provided, prompt for one.
-            if(username == null || loginAttempted) {
-                LOGGER.info("Prompting user for username.");
-                System.out.println("Username?");
-                username = new Scanner(System.in).nextLine();
+        // From the point the WebDriver will be active. For the purpose of cleanly exiting, we catch some common exceptions.
+        try {
+            // Now set system properties and construct driver.
+            switch (browser) {
+                case CHROME:
+                    System.setProperty("webdriver.chrome.driver", driverPath.getAbsolutePath());
+                    LOGGER.info("Environment variable set \"webdriver.chrome.driver\"=\"" + System.getProperty("webdriver.chrome.driver") + "\"");
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.setHeadless(headless);
+                    driver = new ChromeDriver(chromeOptions);
+                    break;
+                case FIREFOX:
+                    System.setProperty("webdriver.gecko.driver", driverPath.getAbsolutePath());
+                    LOGGER.info("Environment variable set \"webdriver.gecko.driver\"=\"" + System.getProperty("webdriver.gecko.driver") + "\"");
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.setHeadless(headless);
+                    driver = new FirefoxDriver(firefoxOptions);
+                    break;
+                case IE:
+                    System.setProperty("webdriver.ie.driver", driverPath.getAbsolutePath());
+                    LOGGER.info("Environment variable set \"webdriver.ie.driver\"=\"" + System.getProperty("webdriver.ie.driver") + "\"");
+                    InternetExplorerOptions internetExplorerOptions = new InternetExplorerOptions();
+                    if (headless) {
+                        LOGGER.info("Internet Explorer does not support headless mode.");
+                    }
+                    driver = new InternetExplorerDriver(internetExplorerOptions);
+                    break;
+                case EDGE:
+                    System.setProperty("webdriver.edge.driver", driverPath.getAbsolutePath());
+                    LOGGER.info("Environment variable set \"webdriver.edge.driver\"=\"" + System.getProperty("webdriver.edge.driver") + "\"");
+                    EdgeOptions edgeOptions = new EdgeOptions();
+                    if (headless) {
+                        LOGGER.info("Microsoft Edge does not support headless mode.");
+                    }
+                    driver = new EdgeDriver(edgeOptions);
+                    break;
+                case SAFARI:    //System.setProperty("SELENIUM_SERVER_JAR", driverPath.getAbsolutePath()); // Environment variable may not be necessary on Safari 10+, have not yet tested.
+                    //LOGGER.info("Environment variable set \"SELENIUM_SERVER_JAR\"=\""+System.getProperty("webdriver.gecko.driver")+"\"");
+                    SafariOptions safariOptions = new SafariOptions();
+                    if (headless) {
+                        LOGGER.info("Apple Safari does not support headless mode.");
+                    }
+                    driver = new SafariDriver(safariOptions);
+                    break;
+                default:
+                    break;
             }
-            // If no password was provided, prompt for one.
-            if(password == null || loginAttempted) {
-                LOGGER.info("Prompting user for password.");
-                System.out.println("Password?");
-                Console console = System.console();
-                // Use the console to securely read the password without displaying it on-screen.
-                if(console != null) {
-                    LOGGER.info("Reading password safely through System.Console.");
-                    password = new String(console.readPassword());
+
+            // Go to the target website in the browser. Default is UMass SPIRE homepage.
+            driver.get(UMass.SPIRE_HOME_URL);
+            LOGGER.info("Driver going to \"" + driver.getCurrentUrl() + "\"");
+            // Boolean used to re-prompt user for username/password in case the provided credentials did not progress page.
+            boolean loginAttempted = false;
+            do {
+                // If no username was provided, prompt for one.
+                if (username == null || loginAttempted) {
+                    LOGGER.info("Prompting user for username.");
+                    System.out.println("Username?");
+                    username = new Scanner(System.in).nextLine();
+                }
+                // If no password was provided, prompt for one.
+                if (password == null || loginAttempted) {
+                    LOGGER.info("Prompting user for password.");
+                    System.out.println("Password?");
+                    Console console = System.console();
+                    // Use the console to securely read the password without displaying it on-screen.
+                    if (console != null) {
+                        LOGGER.info("Reading password safely through System.Console.");
+                        password = new String(console.readPassword());
+                    } else {
+                        LOGGER.info("Reading password unsafely through System.in.");
+                        password = new Scanner(System.in).nextLine();
+                    }
+                }
+                // Explicitly waits for the Username field to load and types username.
+                LOGGER.info("Typing \"" + username + "\" into ID \"" + UMass.USERNAME_ID + "\"");
+                UMass.waitForElement(driver, By.id(UMass.USERNAME_ID)).sendKeys(username);
+                // Presence of Username means Password and Go button are loaded too.
+                if (password == null || password.equals("")) {
+                    LOGGER.info("Typing \"" + password + "\" into ID \"" + UMass.PASSWORD_ID + "\"");
                 } else {
-                    LOGGER.info("Reading password unsafely through System.in.");
-                    password = new Scanner(System.in).nextLine();
+                    LOGGER.info("Typing the password into ID \"" + UMass.PASSWORD_ID + "\"");
+                }
+                driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(password);
+                // SPIRE slightly changed the CSS selector for the login button. Look for new one first, if not found, try old one.
+                LOGGER.info("Looking for the login button.");
+                if (UMass.isElementFound(driver, UMass.TIMEOUT_INTERVAL, By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR))) {
+                    LOGGER.info("Clicking CSS selector \"" + UMass.LOGIN_BUTTON_SELECTOR + "\"");
+                    driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();
+                } else {
+                    LOGGER.info("Clicking CSS selector \"" + UMass.OLD_LOGIN_BUTTON_SELECTOR + "\"");
+                    driver.findElement(By.cssSelector(UMass.OLD_LOGIN_BUTTON_SELECTOR)).click();
+                }
+                LOGGER.info("Sleeping for " + UMass.WAIT_INTERVAL * 2 + " milliseconds.");
+                UMass.sleep(UMass.WAIT_INTERVAL * 2);
+                loginAttempted = true;
+                // The page will be "SPIRE Logon" as long as the user is not logged in.
+                // Repeat until the page has changed, assuming that means the user is successfully logged in.
+            } while (driver.getTitle().equals("SPIRE Logon"));
+
+            // SPIRE is normally shown as a webpage within a webpage.
+            // The subwebpage's code is hard to access while it is nested.
+            // This line explicitly waits until the internal frame is present
+            // and then loads it into the driver as the main webpage.
+            LOGGER.info("Loading \"iframe\" into the driver.");
+            driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
+            // Wait in case there is an error popup (seen on Firefox, not Chrome).
+            LOGGER.info("Sleeping for " + UMass.WAIT_INTERVAL + " milliseconds.");
+            UMass.sleep(UMass.WAIT_INTERVAL);
+
+            // If no preferred automator was provided, prompt for one.
+            while (automator == null) {
+                LOGGER.info("Prompting user for automator.");
+                System.out.println("Automator?\n1: Enroller\n2: Houser");
+                switch (new Scanner(System.in).nextInt()) {
+                    case 1:
+                        automator = Automator.ENROLLER;
+                        break;
+                    case 2:
+                        automator = Automator.HOUSER;
+                        break;
+                    default:
+                        break;
                 }
             }
-            // Explicitly waits for the Username field to load and types username.
-            LOGGER.info("Typing \""+username+"\" into ID \""+UMass.USERNAME_ID+"\"");
-            UMass.waitForElement(driver, By.id(UMass.USERNAME_ID)).sendKeys(username);
-            // Presence of Username means Password and Go button are loaded too.
-            if(password == null || password.equals("")) {
-                LOGGER.info("Typing \""+password+"\" into ID \""+UMass.PASSWORD_ID+"\"");
-            } else {
-                LOGGER.info("Typing the password into ID \""+UMass.PASSWORD_ID+"\"");
-            }
-            driver.findElement(By.id(UMass.PASSWORD_ID)).sendKeys(password);
-            // SPIRE slightly changed the CSS selector for the login button. Look for new one first, if not found, try old one.
-            LOGGER.info("Looking for the login button.");
-            if(UMass.isElementFound(driver, UMass.TIMEOUT_INTERVAL, By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR))) {
-                LOGGER.info("Clicking CSS selector \"" + UMass.LOGIN_BUTTON_SELECTOR + "\"");
-                driver.findElement(By.cssSelector(UMass.LOGIN_BUTTON_SELECTOR)).click();
-            } else {
-                LOGGER.info("Clicking CSS selector \"" + UMass.OLD_LOGIN_BUTTON_SELECTOR + "\"");
-                driver.findElement(By.cssSelector(UMass.OLD_LOGIN_BUTTON_SELECTOR)).click();
-            }
-            LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL*2+" milliseconds.");
-            UMass.sleep(UMass.WAIT_INTERVAL*2);
-            loginAttempted = true;
-            // The page will be "SPIRE Logon" as long as the user is not logged in.
-            // Repeat until the page has changed, assuming that means the user is successfully logged in.
-        } while(driver.getTitle().equals("SPIRE Logon"));
-
-        // SPIRE is normally shown as a webpage within a webpage.
-        // The subwebpage's code is hard to access while it is nested.
-        // This line explicitly waits until the internal frame is present
-        // and then loads it into the driver as the main webpage.
-        LOGGER.info("Loading \"iframe\" into the driver.");
-        driver.get(UMass.waitForElement(driver, By.tagName("iframe")).getAttribute("src"));
-        // Wait in case there is an error popup (seen on Firefox, not Chrome).
-        LOGGER.info("Sleeping for "+UMass.WAIT_INTERVAL+" milliseconds.");
-        UMass.sleep(UMass.WAIT_INTERVAL);
-
-        // If no preferred automator was provided, prompt for one.
-        while(automator == null) {
-            LOGGER.info("Prompting user for automator.");
-            System.out.println("Automator?\n1: Enroller\n2: Houser");
-            switch(new Scanner(System.in).nextInt()) {
-                case 1:     automator = Automator.ENROLLER;   break;
-                case 2:     automator = Automator.HOUSER;     break;
-                default:    break;
-            }
-        }
-        // Go into the appropriate automator program.
-        switch(automator) {
-            case ENROLLER:      LOGGER.info("Constructing enroller configuration.");
-                                Map<String, Lecture> currentSchedule = new HashMap<>();
-                                Map<String, Lecture> shoppingCart = new HashMap<>();
-                                ArrayList<Action> actions = new ArrayList<>();
-                                setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
-                                SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
-                                LOGGER.info("Running enroller with "+actions.size()+" actions.");
-                                spireEnrollment.run();
-                                break;
-            case HOUSER:        LOGGER.info("Constructing houser configuration.");
-                                // Used to indicate if the automator should quit after making one housing change,
-                                // or if it should keep searching for a better room forever (until quit).
-                                boolean searchForever = false;
-                                // Default to one search criteria configuration.
-                                // If user calls for more configurations, a larger array will be created & copied into.
-                                ArrayList<RoomSearch> searches = new ArrayList<>();
-                                // Configure only the first search configuration with runtime arguments.
-                                // Additional configurations need to be configured in runtime.
+            // Go into the appropriate automator program.
+            switch (automator) {
+                case ENROLLER:
+                    LOGGER.info("Constructing enroller configuration.");
+                    Map<String, Lecture> currentSchedule = new HashMap<>();
+                    Map<String, Lecture> shoppingCart = new HashMap<>();
+                    ArrayList<Action> actions = new ArrayList<>();
+                    setEnrollerConfiguration(driver, currentSchedule, shoppingCart, actions);
+                    SpireEnrollment spireEnrollment = new SpireEnrollment(driver, term, currentSchedule, shoppingCart, actions);
+                    LOGGER.info("Running enroller with " + actions.size() + " actions.");
+                    spireEnrollment.run();
+                    break;
+                case HOUSER:
+                    LOGGER.info("Constructing houser configuration.");
+                    // Used to indicate if the automator should quit after making one housing change,
+                    // or if it should keep searching for a better room forever (until quit).
+                    boolean searchForever = false;
+                    // Default to one search criteria configuration.
+                    // If user calls for more configurations, a larger array will be created & copied into.
+                    ArrayList<RoomSearch> searches = new ArrayList<>();
+                    // Configure only the first search configuration with runtime arguments.
+                    // Additional configurations need to be configured in runtime.
+                    searches.add(new RoomSearch());
+                    // Reprocess each command-line argument to find arguments for houser.
+                    Map<String, Integer> indexMap = new HashMap<>();
+                    int index = 0;
+                    for (String arg : args) {
+                        String[] argSplit = arg.split("=", 2);
+                        // Only parse the argument if it is splittable, such as "param=value"
+                        if (argSplit.length > 1) {
+                            LOGGER.info("Parameter/value pair \"" + arg + "\" split at \"=\": parameter=\"" + argSplit[0] + "\" value=\"" + argSplit[1] + "\"");
+                            // Do not alter the input strings, fields may need to be exact (ex. password).
+                            String param = argSplit[0];
+                            String value = argSplit[1];
+                            String[] paramSplit = param.split("-", 2);
+                            if (paramSplit.length > 1) {
+                                LOGGER.info("Index/parameter pair \"" + param + "\" split at \"-\": index=\"" + paramSplit[0] + "\" parameter=\"" + paramSplit[1] + "\"");
+                                if (!indexMap.containsKey(paramSplit[0])) {
+                                    LOGGER.info("Adding new index mapping \"" + paramSplit[0] + "\" -> \"" + indexMap.size());
+                                    indexMap.put(paramSplit[0], indexMap.size());
+                                }
+                                index = indexMap.get(paramSplit[0]);
+                                LOGGER.info("Index map found \"" + paramSplit[0] + "\" -> " + index);
+                                param = paramSplit[1];
+                            }
+                            while (index > searches.size() - 1) {
+                                LOGGER.info("Creating new room search configuration at index " + index);
                                 searches.add(new RoomSearch());
-                                // Reprocess each command-line argument to find arguments for houser.
-                                Map<String, Integer>  indexMap = new HashMap<>();
-                                int index = 0;
-                                for(String arg : args) {
-                                    String[] argSplit = arg.split("=", 2);
-                                    // Only parse the argument if it is splittable, such as "param=value"
-                                    if(argSplit.length > 1) {
-                                        LOGGER.info("Parameter/value pair \""+arg+"\" split at \"=\": parameter=\""+argSplit[0]+"\" value=\""+argSplit[1]+"\"");
-                                        // Do not alter the input strings, fields may need to be exact (ex. password).
-                                        String param = argSplit[0];
-                                        String value = argSplit[1];
-                                        String[] paramSplit = param.split("-", 2);
-                                        if(paramSplit.length > 1) {
-                                            LOGGER.info("Index/parameter pair \""+param+"\" split at \"-\": index=\""+paramSplit[0]+"\" parameter=\""+paramSplit[1]+"\"");
-                                            if(!indexMap.containsKey(paramSplit[0])) {
-                                                LOGGER.info("Adding new index mapping \""+paramSplit[0]+"\" -> \""+indexMap.size());
-                                                indexMap.put(paramSplit[0], indexMap.size());
-                                            }
-                                            index = indexMap.get(paramSplit[0]);
-                                            LOGGER.info("Index map found \""+paramSplit[0]+"\" -> "+index);
-                                            param = paramSplit[1];
-                                        }
-                                        while(index > searches.size()-1) {
-                                            LOGGER.info("Creating new room search configuration at index "+index);
-                                            searches.add(new RoomSearch());
-                                        }
-                                        RoomSearch curSearch = searches.get(index);
-                                        switch(param.toLowerCase()) {
-                                            case "searches":    // Subtract one because one RoomSearch already exists.
-                                                int numSearches = Integer.valueOf(value)-1;
-                                                // Only make more search criteria if this value is greater than current size.
-                                                while(numSearches > 0) {
-                                                    searches.add(new RoomSearch());
-                                                    numSearches--;
-                                                }
-                                            case "forever":     switch(value.toLowerCase()) {
-                                                case "true":        searchForever = true;   break;
-                                                case "false":       searchForever = false;  break;
-                                                default:            break;
-                                            }   break;
-                                            // Inside this switch statement it is okay to lowercase the input strings
-                                            // because the input strings themselves are not passed to something important.
-                                            case "s2radio":     switch(value.toLowerCase()) {
-                                                case "building":    curSearch.setStep2Radio(RoomSearch.Step2Radio.BUILDING);     break;
-                                                case "cluster":     curSearch.setStep2Radio(RoomSearch.Step2Radio.CLUSTER);      break;
-                                                case "area":        curSearch.setStep2Radio(RoomSearch.Step2Radio.AREA);         break;
-                                                case "all":         curSearch.setStep2Radio(RoomSearch.Step2Radio.ALL);          break;
-                                                default:            break;
-                                            }   break;
-                                            case "s3radio":     switch(value.toLowerCase()) {
-                                                case "type":        curSearch.setStep3Radio(RoomSearch.Step3Radio.TYPE);         break;
-                                                case "design":      curSearch.setStep3Radio(RoomSearch.Step3Radio.DESIGN);       break;
-                                                case "floor":       curSearch.setStep3Radio(RoomSearch.Step3Radio.FLOOR);        break;
-                                                case "option":      curSearch.setStep3Radio(RoomSearch.Step3Radio.OPTION);       break;
-                                                default:            break;
-                                            }   break;
-                                            case "s4radio":     switch(value.toLowerCase()) {
-                                                case "none":        curSearch.setStep4Radio(RoomSearch.Step4Radio.NONE);         break;
-                                                case "room_open":   curSearch.setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);    break;
-                                                case "suite_open":  curSearch.setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);   break;
-                                                case "type":        curSearch.setStep4Radio(RoomSearch.Step4Radio.TYPE);         break;
-                                                case "open_double": curSearch.setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);  break;
-                                                case "open_triple": curSearch.setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);  break;
-                                                default:            break;
-                                            }   break;
-                                            // Here the values are passed along to something case-sensitive
-                                            // so the input strings cannot be made lowercase.
-                                            case "process":     curSearch.setStep1ProcessSelect(value);   break;
-                                            case "s2select":    curSearch.setStep2Select(value);          break;
-                                            case "s3select":    curSearch.setStep3Select(value);          break;
-                                            case "s4select":    curSearch.setStep4Select(value);          break;
-                                            default:            break;
-                                        }
+                            }
+                            RoomSearch curSearch = searches.get(index);
+                            switch (param.toLowerCase()) {
+                                case "searches":    // Subtract one because one RoomSearch already exists.
+                                    int numSearches = Integer.valueOf(value) - 1;
+                                    // Only make more search criteria if this value is greater than current size.
+                                    while (numSearches > 0) {
+                                        searches.add(new RoomSearch());
+                                        numSearches--;
                                     }
-                                }
+                                case "forever":
+                                    switch (value.toLowerCase()) {
+                                        case "true":
+                                            searchForever = true;
+                                            break;
+                                        case "false":
+                                            searchForever = false;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    break;
+                                // Inside this switch statement it is okay to lowercase the input strings
+                                // because the input strings themselves are not passed to something important.
+                                case "s2radio":
+                                    switch (value.toLowerCase()) {
+                                        case "building":
+                                            curSearch.setStep2Radio(RoomSearch.Step2Radio.BUILDING);
+                                            break;
+                                        case "cluster":
+                                            curSearch.setStep2Radio(RoomSearch.Step2Radio.CLUSTER);
+                                            break;
+                                        case "area":
+                                            curSearch.setStep2Radio(RoomSearch.Step2Radio.AREA);
+                                            break;
+                                        case "all":
+                                            curSearch.setStep2Radio(RoomSearch.Step2Radio.ALL);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    break;
+                                case "s3radio":
+                                    switch (value.toLowerCase()) {
+                                        case "type":
+                                            curSearch.setStep3Radio(RoomSearch.Step3Radio.TYPE);
+                                            break;
+                                        case "design":
+                                            curSearch.setStep3Radio(RoomSearch.Step3Radio.DESIGN);
+                                            break;
+                                        case "floor":
+                                            curSearch.setStep3Radio(RoomSearch.Step3Radio.FLOOR);
+                                            break;
+                                        case "option":
+                                            curSearch.setStep3Radio(RoomSearch.Step3Radio.OPTION);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    break;
+                                case "s4radio":
+                                    switch (value.toLowerCase()) {
+                                        case "none":
+                                            curSearch.setStep4Radio(RoomSearch.Step4Radio.NONE);
+                                            break;
+                                        case "room_open":
+                                            curSearch.setStep4Radio(RoomSearch.Step4Radio.ROOM_OPEN);
+                                            break;
+                                        case "suite_open":
+                                            curSearch.setStep4Radio(RoomSearch.Step4Radio.SUITE_OPEN);
+                                            break;
+                                        case "type":
+                                            curSearch.setStep4Radio(RoomSearch.Step4Radio.TYPE);
+                                            break;
+                                        case "open_double":
+                                            curSearch.setStep4Radio(RoomSearch.Step4Radio.OPEN_DOUBLE);
+                                            break;
+                                        case "open_triple":
+                                            curSearch.setStep4Radio(RoomSearch.Step4Radio.OPEN_TRIPLE);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    break;
+                                // Here the values are passed along to something case-sensitive
+                                // so the input strings cannot be made lowercase.
+                                case "process":
+                                    curSearch.setStep1ProcessSelect(value);
+                                    break;
+                                case "s2select":
+                                    curSearch.setStep2Select(value);
+                                    break;
+                                case "s3select":
+                                    curSearch.setStep3Select(value);
+                                    break;
+                                case "s4select":
+                                    curSearch.setStep4Select(value);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
 
-                                LOGGER.config("searchForever = \""+searchForever+"\"");
-                                for(int i = 0; i < searches.size(); i++) {
-                                    // Assume that all searches are for the same semester, so set this term to all searches.
-                                    searches.get(i).setStep1TermSelect(term);
-                                    LOGGER.config(i+"-step1TermSelect = \""+searches.get(i).getStep1TermSelect()+"\"");
-                                    LOGGER.config(i+"-step1ProcessSelect = \""+searches.get(i).getStep1ProcessSelect()+"\"");
-                                    LOGGER.config(i+"-step2Radio = \""+searches.get(i).getStep2Radio()+"\"");
-                                    LOGGER.config(i+"-step2Select = \""+searches.get(i).getStep2Select()+"\"");
-                                    LOGGER.config(i+"-step3Radio = \""+searches.get(i).getStep3Radio()+"\"");
-                                    LOGGER.config(i+"-step3Select = \""+searches.get(i).getStep3Select()+"\"");
-                                    LOGGER.config(i+"-step4Radio = \""+searches.get(i).getStep4Radio()+"\"");
-                                    LOGGER.config(i+"-step4Select = \""+searches.get(i).getStep4Select()+"\"");
-                                }
-                                SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
-                                spireHousing.setLevel(LOGGER.getLevel());
-                                LOGGER.info("Running houser with "+searches.size()+" search(es).");
-                                spireHousing.run();
-                                break;
-            default:            break;
+                    LOGGER.config("searchForever = \"" + searchForever + "\"");
+                    for (int i = 0; i < searches.size(); i++) {
+                        // Assume that all searches are for the same semester, so set this term to all searches.
+                        searches.get(i).setStep1TermSelect(term);
+                        LOGGER.config(i + "-step1TermSelect = \"" + searches.get(i).getStep1TermSelect() + "\"");
+                        LOGGER.config(i + "-step1ProcessSelect = \"" + searches.get(i).getStep1ProcessSelect() + "\"");
+                        LOGGER.config(i + "-step2Radio = \"" + searches.get(i).getStep2Radio() + "\"");
+                        LOGGER.config(i + "-step2Select = \"" + searches.get(i).getStep2Select() + "\"");
+                        LOGGER.config(i + "-step3Radio = \"" + searches.get(i).getStep3Radio() + "\"");
+                        LOGGER.config(i + "-step3Select = \"" + searches.get(i).getStep3Select() + "\"");
+                        LOGGER.config(i + "-step4Radio = \"" + searches.get(i).getStep4Radio() + "\"");
+                        LOGGER.config(i + "-step4Select = \"" + searches.get(i).getStep4Select() + "\"");
+                    }
+                    SpireHousing spireHousing = new SpireHousing(driver, searches, searchForever);
+                    spireHousing.setLevel(LOGGER.getLevel());
+                    LOGGER.info("Running houser with " + searches.size() + " search(es).");
+                    spireHousing.run();
+                    break;
+                default:
+                    break;
+            }
+        } catch(TimeoutException | StaleElementReferenceException |NoSuchElementException e) {
+            // Catches common exceptions thrown by the WebDriver process, like timeouts, and old or missing elements.
+            e.printStackTrace();
+        } finally {
+            LOGGER.info("Quitting WebDriver process.");
+            driver.quit();
         }
-    driver.quit();
     }
 
     /**
