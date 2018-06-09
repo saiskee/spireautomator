@@ -568,7 +568,7 @@ public class SpireAutomator {
                 default:
                     break;
             }
-        } catch(TimeoutException | StaleElementReferenceException |NoSuchElementException e) {
+        } catch(TimeoutException | StaleElementReferenceException | NoSuchElementException e) {
             // Catches common exceptions thrown by the WebDriver process, like timeouts, and old or missing elements.
             e.printStackTrace();
         } finally {
