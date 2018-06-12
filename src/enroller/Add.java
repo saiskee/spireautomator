@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 
 //TODO: What does Action Add do if Lecture is in cart but wrong Discussion?
 public class Add extends Action {
-    private final static Logger LOGGER = Logger.getLogger("spireautomator.enroller");
+    private final static Logger LOGGER = Logger.getLogger("spireautomator.enroller.add");
     private Lecture lectureToAdd;
     private Discussion discussionToAdd;
 
