@@ -5,7 +5,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import spire.UMass;
 
-import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * To add a Lecture, the Lecture must be in your shopping cart.
@@ -26,6 +27,7 @@ import java.util.List;
 
 //TODO: What does Action Add do if Lecture is in cart but wrong Discussion?
 public class Add extends Action {
+    private final static Logger LOGGER = Logger.getLogger("spireautomator.enroller");
     private Lecture lectureToAdd;
     private Discussion discussionToAdd;
 
@@ -48,20 +50,22 @@ public class Add extends Action {
     public boolean perform(SpireEnrollment spireEnrollment) {
         boolean result = false;
         WebDriver driver = spireEnrollment.getDriver();
-        // Check if Add is the current tab.
+        LOGGER.info("Checking if Add is the current tab.");
         if(!UMass.waitForElement(spireEnrollment.getDriver(), By.cssSelector(UMass.SECTION_TITLE_SELECTOR))
                 .getText().contains("Add Classes to Shopping Cart")) {
+            LOGGER.info("Not in the Add tab; clicking Add tab.");
             UMass.findElementTab(driver, "add").click();
         }
-        // Check if SPIRE first needs to have a term selected.
+        LOGGER.info("Checking if SPIRE first needs to have a term selected.");
         if(UMass.checkSelectTerm(spireEnrollment)) {
+            LOGGER.info("Selecting the current term.");
             UMass.selectTerm(driver, spireEnrollment.getTerm());
         }
-        // If the Lecture is not already in the shopping cart.
+        LOGGER.info("Checking if the Lecture is not already in the shopping cart.");
         if(spireEnrollment.getShoppingCart().get(lectureToAdd.getClassId()) == null) {
-            // Type in class ID of Lecture into add by ID field.
+            LOGGER.info("Typing in class ID of Lecture into Add by ID field.");
             driver.findElement(By.cssSelector(UMass.ADD_CART_FIELD_SELECTOR)).sendKeys(lectureToAdd.getClassId());
-            // Click the enter button next to the add by ID field.
+            LOGGER.info("Clicking the enter button next to the Add by ID field.");
             driver.findElement(By.cssSelector(UMass.ADD_CART_ENTER_SELECTOR)).click();
             // If this class requires a Discussion and must have one selected.
             if(discussionToAdd != null) {
@@ -70,14 +74,14 @@ public class Add extends Action {
                 for(int row = 1; row < discussionTable.size(); row++) {
                     // If the section column of this Discussion row contains the needed section.
                     if(UMass.findElementAddTable(driver, row, 3).getText().contains(discussionToAdd.getSection())) {
-                        // Click on the checkbox and click the next button
+                        LOGGER.info("Clicking on the discussion's checkbox and clicking the next button.");
                         UMass.findElementAddTable(driver, row, 1).findElement(By.className(UMass.RADIO_BUTTON_CLASS)).click();
                         driver.findElement(By.className(UMass.CONFIRM_BUTTON_CLASS)).click();
                         break;
                     }
                 }
             }
-            // Click on the confirm button to finish adding to cart. Returns to shopping cart.
+            LOGGER.info("Clicking on the confirm button to finish adding to cart, which returns to the shopping cart.");
             UMass.waitForElement(driver, By.cssSelector(UMass.CONFIRM_ADD_CART_SELECTOR)).click();
         }
         // Get a list of all the elements on the web page shopping cart.
@@ -85,20 +89,23 @@ public class Add extends Action {
         for(int row = 1; row < cartList.size(); row++) {
             // If this row's name column contains the Lecture's ID.
             if(UMass.findElementShoppingCart(driver, row, 2).getText().contains(lectureToAdd.getClassId())) {
-                // Check this Lecture's checkbox and click the enroll button, then click finish enrolling.
+                LOGGER.info("Checking this lecture's checkbox and clicking the enroll button.");
                 UMass.findElementShoppingCart(driver, row, 1).findElement(By.className(UMass.CHECKBOX_CLASS)).click();
+                LOGGER.info("Clicking on the button to finish enrolling.");
                 driver.findElement(By.cssSelector(UMass.ENROLL_BUTTON_SELECTOR)).click();
-                // Wait, then click the button to again confirm add Lecture selection.
+                LOGGER.info("Clicking the button to finally confirm adding this lecture selection. Waiting up to 30 seconds...");
                 UMass.waitForElement(driver, 30, By.cssSelector(UMass.FINISH_BUTTON_SELECTOR)).click();
                 // Wait, then if the success text is found, set to true and exit for-loop.
+                LOGGER.info("Waiting and looking for success text...");
                 if(UMass.waitForElement(driver, By.cssSelector(UMass.RESULT_ICON_SELECTOR))
                         .getAttribute("innerHTML").contains(UMass.SUCCESS_ICON_HTML)) {
+                    LOGGER.info("Success text found.");
                     result = true;
                 }
                 break;
             }
         }
-        // Go back to the shopping cart. No tabs on this page so must use button.
+        LOGGER.info("Going back to the shopping cart. There are no tabs on this page so we must use the button.");
         UMass.waitForElement(driver, By.cssSelector(UMass.ADD_MORE_CLASS_SELECTOR)).click();
         this.setSatisfied(result);
         return result;
