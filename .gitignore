@@ -1,6 +1,6 @@
-# Created by .ignore support plugin (hsz.mobi)
 .idea/
 lib/
 out/
+build/
 src/META-INF
 .spire.properties
