@@ -25,6 +25,7 @@ it just performs those actions automatically.
 The following are runtime arguments used universally by all automators:
 
 	logging=[off, severe, warning, info, config, all]
+	restart=[true, false]
 	browser=[chrome, firefox, internetexplorer, edge, safari]
 	headless=[true, false]
 	driver

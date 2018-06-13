@@ -79,19 +79,21 @@ public class SpireAutomator {
         }
         private static Browser promptBrowser() {
             Browser result = null;
-            System.out.println("Web browser?\n" +
+            while(result == null) {
+                System.out.println("Web browser?\n" +
                     "1: Google Chrome\n" +
                     "2: Mozilla Firefox\n" +
                     "3: Internet Explorer\n" +
                     "4: Microsoft Edge\n" +
                     "5: Apple Safari");
-            switch(new Scanner(System.in).nextInt()) {
-                case 1:     result = CHROME;    break;
-                case 2:     result = FIREFOX;   break;
-                case 3:     result = IE;        break;
-                case 4:     result = EDGE;      break;
-                case 5:     result = SAFARI;    break;
-                default:    break;
+                switch(UMass.tryToInt(new Scanner(System.in).nextLine())) {
+                    case 1:     result = CHROME;    break;
+                    case 2:     result = FIREFOX;   break;
+                    case 3:     result = IE;        break;
+                    case 4:     result = EDGE;      break;
+                    case 5:     result = SAFARI;    break;
+                    default:    break;
+                }
             }
             return result;
         }
@@ -161,6 +163,7 @@ public class SpireAutomator {
         LOGGER.setLevel(Level.OFF);
         LOGGER.setUseParentHandlers(false);
         OS os = OS.getOS();
+        boolean restart = false;
         Browser browser = null;
         OSBrowser osBrowser = null;
         boolean headless = false;
@@ -206,6 +209,7 @@ public class SpireAutomator {
                             default:        break;
                         }   break;
                         case "driver":      driverPath = new File(value);           break;
+                        case "restart":     restart = value.equalsIgnoreCase("true");    break;
                         case "headless":    headless = value.equalsIgnoreCase("true");        break;
                         case "browser":     browser = Browser.getBrowser(value);
                                             osBrowser = OSBrowser.getOsBrowser(os, browser);
@@ -574,6 +578,10 @@ public class SpireAutomator {
         } finally {
             LOGGER.info("Quitting WebDriver process.");
             driver.quit();
+        }
+        // If the flags specify to restart upon conclusion (for example, in case of a crash), call main().
+        if(restart) {
+        	main(args);
         }
     }
 
