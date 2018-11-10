@@ -135,6 +135,7 @@ public class SpireEnrollment {
         }
         System.out.println();
     }
+    
 
     private void printShoppingCart() {
         System.out.println("Shopping cart:");

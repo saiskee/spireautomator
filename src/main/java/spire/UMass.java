@@ -123,7 +123,23 @@ public class UMass {
     // Student Center
     public static final String ENROLLMENT_LINK_SELECTOR = "#DERIVED_SSS_SCR_SSS_LINK_ANCHOR1";
     public static final String HOUSING_LINK_SELECTOR = "#UM_H_DERIV_SSS_UMH_SS_RMSEL_LNK";
-
+    public static final String CLASS_SEARCH_BUTTON_SELECTOR_ID = "DERIVED_SSS_SCL_SSS_GO_4$83$";
+    
+    // Class Search
+    	public static final String CLASS_SEARCH_TERM_SELECTOR = "#UM_DERIVED_SA_UM_TERM_DESCR";
+    	public static final String CLASS_SEARCH_COURSE_SUBJECT_SELECTOR_ID = "CLASS_SRCH_WRK2_SUBJECT$108$";
+    	public static final String CLASS_SEARCH_COURSE_NUMBER_SELECTOR_ID = "CLASS_SRCH_WRK2_SSR_EXACT_MATCH1";
+    	public static final String CLASS_SEARCH_OPEN_CLASSES_ONLY_CHECKBOX_ID = "CLASS_SRCH_WRK2_SSR_OPEN_ONLY";
+    	public static final String CLASS_SEARCH_COURSE_NUMBER_INPUT_ID = "CLASS_SRCH_WRK2_CATALOG_NBR$8$";
+    	public static final String CLASS_SEARCH_SEARCH_BUTTON_ID = "CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH";
+    // Class Search Results
+    	public static final String SEARCH_RESULTS_COURSE_NAME_CLASS = "SSSHYPERLINKBOLD";
+    	public static final String SEARCH_RESULTS_COURSE_NAME_DIV_ID = "win0divDERIVED_CLSRCH_SSR_EXPAND_COLLAP2$";
+    	public static final String SEARCH_RESULTS_COURSE_NAME_SPAN_ID = "DERIVED_CLSRCH_DESCR200$";
+    	public static final String SEARCH_RESULTS_COURSE_INFO_BOX_DIV_ID = "win0divDERIVED_CLSRCH_GROUPBOX1$133$$";
+    	public static final String SEARCH_RESULTS_GENED_SPAN_ID = "UM_DERIVED_SA_UM_GENED_VALUES$";
+    	
+    	
     // Select Term
     public static final String TERMS_TABLE_SELECTOR = "#SSR_DUMMY_RECV1\\24 scroll\\24 0";
     public static final String TERMS_CONTINUE_SELECTOR = "#DERIVED_SSS_SCT_SSR_PB_GO";

@@ -23,6 +23,8 @@ import org.openqa.selenium.ie.InternetExplorerOptions;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
 
+import classscraper.SpireClassScraper;
+
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -151,7 +153,7 @@ public class SpireAutomator {
     }
 
     public enum Automator {
-        ENROLLER, HOUSER
+        ENROLLER, HOUSER, CLASSSCRAPER
     }
 
     private final static Logger LOGGER = Logger.getLogger("spireautomator");
@@ -162,11 +164,13 @@ public class SpireAutomator {
         LOGGER.addHandler(handler);
         LOGGER.setLevel(Level.OFF);
         LOGGER.setUseParentHandlers(false);
+        
         OS os = OS.getOS();
         boolean restart = false;
         Browser browser = null;
         OSBrowser osBrowser = null;
-        boolean headless = false;
+        //Set headless to true if you do not want to see browser
+        boolean headless = false; 
         File driverPath = null;
         WebDriver driver = null;
         Automator automator = null;
@@ -190,6 +194,7 @@ public class SpireAutomator {
                         case "automator":   switch(value) {
                             case "enroller":    automator = Automator.ENROLLER; break;
                             case "houser":      automator = Automator.HOUSER;   break;
+                            case "classscraper": automator = Automator.CLASSSCRAPER; break;
                             default:            break;
                         }   break;
                         case "timeout":     int timeout = UMass.tryToInt(value);
@@ -387,7 +392,7 @@ public class SpireAutomator {
             // If no preferred automator was provided, prompt for one.
             while (automator == null) {
                 LOGGER.info("Prompting user for automator.");
-                System.out.println("Automator?\n1: Enroller\n2: Houser");
+                System.out.println("Automator?\n1: Enroller\n2: Houser\n3: Class Scraper" );
                 switch (new Scanner(System.in).nextInt()) {
                     case 1:
                         automator = Automator.ENROLLER;
@@ -395,12 +400,19 @@ public class SpireAutomator {
                     case 2:
                         automator = Automator.HOUSER;
                         break;
+                    case 3:
+                    	automator = Automator.CLASSSCRAPER;
                     default:
                         break;
                 }
             }
             // Go into the appropriate automator program.
             switch (automator) {
+	            case CLASSSCRAPER:
+	            	LOGGER.info("Constructing Class Scraper Configuration");
+	            	SpireClassScraper classScraper = new SpireClassScraper(driver,term);
+	            	classScraper.run();
+	            	break;
                 case ENROLLER:
                     LOGGER.info("Constructing enroller configuration.");
                     Map<String, Lecture> currentSchedule = new HashMap<>();
